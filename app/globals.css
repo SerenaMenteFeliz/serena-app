@@ -12,39 +12,75 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Tema por produto — casca (nav, layout, componentes) é compartilhada,
-   só a paleta muda. Aplicado num wrapper div (não dá pra aninhar <html>),
-   ver components/AppShell.tsx */
+/* Linguagem visual compartilhada: "portal" — atmosfera etérea/mística em
+   todo o app (fundo profundo + brilho radial + campo de estrelas sutil).
+   Cada produto muda só a paleta (--portal-deep / --portal-glow / --surface),
+   não a linguagem. Aplicado num wrapper div (não dá pra aninhar <html>),
+   ver components/AppShell.tsx. */
+.portal-bg {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--portal-deep);
+  background-image:
+    radial-gradient(ellipse 900px 600px at 50% -10%, var(--portal-glow) 0%, transparent 65%),
+    radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 80% 30%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 65% 85%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 25% 55%, rgba(255, 255, 255, 0.4), transparent);
+  background-repeat: no-repeat, repeat, repeat, repeat, repeat, repeat;
+  background-size: 100% 100%, 220px 220px, 260px 260px, 200px 200px, 240px 240px, 180px 180px;
+  color: var(--surface-foreground);
+}
+
+/* Moldura em arco (portal/porta) — decorativa, usada em torno de elementos
+   centrais (capa do livro, logo de entrada). */
+.portal-arch {
+  position: relative;
+  border-radius: 50% 50% 6px 6px / 30% 30% 6px 6px;
+  background: linear-gradient(180deg, var(--portal-glow) 0%, transparent 70%);
+  box-shadow: 0 0 60px var(--portal-glow), inset 0 0 40px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.surface-card {
+  background: var(--surface);
+  color: var(--surface-foreground);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+/* Tema por produto — casca (nav, layout, componentes) é compartilhada, só a
+   paleta muda. Cada um é uma variação da mesma linguagem de portal. */
 .theme-lar-interior {
-  --accent: #8a7355;
-  --accent-foreground: #ffffff;
-  --surface: #f7f3ec;
-  --surface-foreground: #2e2a24;
+  --portal-deep: #0e1a14;
+  --portal-glow: rgba(196, 155, 82, 0.35);
+  --accent: #c49b52;
+  --accent-foreground: #1a1408;
+  --surface: rgba(20, 32, 25, 0.7);
+  --surface-foreground: #f2ead9;
 }
 
 .theme-metodo-calice {
-  --accent: #4b3f6b;
+  --portal-deep: #120a24;
+  --portal-glow: rgba(139, 92, 246, 0.4);
+  --accent: #8b5cf6;
   --accent-foreground: #ffffff;
-  --surface: #f1eef7;
-  --surface-foreground: #26223a;
+  --surface: rgba(30, 20, 55, 0.7);
+  --surface-foreground: #ece7fb;
 }
 
 .theme-hub {
-  --accent: #3f6b5e;
-  --accent-foreground: #ffffff;
-  --surface: #eef4f2;
-  --surface-foreground: #1f2e29;
+  --portal-deep: #0a1a1c;
+  --portal-glow: rgba(94, 182, 166, 0.35);
+  --accent: #5eb6a6;
+  --accent-foreground: #06211d;
+  --surface: rgba(15, 34, 32, 0.7);
+  --surface-foreground: #e6f5f1;
 }

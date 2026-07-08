@@ -1,17 +1,9 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getActiveProducts } from "@/lib/access";
+import { requireAuth, getActiveProducts } from "@/lib/access";
 import { AppShell } from "@/components/AppShell";
 
 export default async function PerfilPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/entrar");
-
-  const produtos = await getActiveProducts(user.id);
+  const { user, contactId } = await requireAuth();
+  const produtos = await getActiveProducts(contactId);
 
   return (
     <AppShell theme="hub" homeHref="/perfil">
