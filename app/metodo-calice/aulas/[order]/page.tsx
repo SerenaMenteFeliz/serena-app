@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireProductAccess } from "@/lib/access";
-import { getLessonByOrder, getCompletedLessonIds } from "@/lib/calice";
+import { getLessonByOrder, getLessonsWithProgress } from "@/lib/calice";
 import { marcarAulaConcluida } from "@/lib/actions/calice";
 import { AppShell } from "@/components/AppShell";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
@@ -13,8 +13,11 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
   const lesson = await getLessonByOrder("metodo_calice", orderNum);
   if (!lesson) notFound();
 
-  const completedIds = await getCompletedLessonIds(contactId, "metodo_calice");
-  const jaConcluida = completedIds.has(lesson.id);
+  const lessonsProgress = await getLessonsWithProgress(contactId, "metodo_calice");
+  const progress = lessonsProgress.find((l) => l.id === lesson.id);
+  if (progress?.locked) redirect("/metodo-calice/aulas");
+
+  const jaConcluida = progress?.completed ?? false;
 
   const marcarConcluidaComArgs = marcarAulaConcluida.bind(null, lesson.id, orderNum);
 

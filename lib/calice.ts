@@ -99,6 +99,21 @@ export async function getLessonByOrder(product: "metodo_calice", order: number) 
   return { ...lesson, blocks: (blocks ?? []) as LessonBlock[] };
 }
 
+// Dia N só desbloqueia depois do Dia N-1 concluído — a própria aula pede
+// isso ("para desbloquear o Dia X"), então a progressão é sequencial.
+export async function getLessonsWithProgress(contactId: string, product: "metodo_calice") {
+  const [lessons, completedIds] = await Promise.all([
+    getLessons(product),
+    getCompletedLessonIds(contactId, product),
+  ]);
+
+  return lessons.map((lesson, i) => ({
+    ...lesson,
+    completed: completedIds.has(lesson.id),
+    locked: i > 0 && !completedIds.has(lessons[i - 1].id),
+  }));
+}
+
 export async function getCompletedLessonIds(contactId: string, product: "metodo_calice") {
   const supabase = await createClient();
   const { data: lessons } = await supabase.from("lessons").select("id").eq("product", product);
