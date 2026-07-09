@@ -40,13 +40,44 @@ body {
 }
 
 /* Moldura em arco (portal/porta) — decorativa, usada em torno de elementos
-   centrais (capa do livro, logo de entrada). */
+   centrais (capa do livro, logo de entrada). Rim mais definido + brilho
+   pulsando bem devagar (sutil, respeita prefers-reduced-motion). */
 .portal-arch {
   position: relative;
-  border-radius: 50% 50% 6px 6px / 30% 30% 6px 6px;
-  background: linear-gradient(180deg, var(--portal-glow) 0%, transparent 70%);
-  box-shadow: 0 0 60px var(--portal-glow), inset 0 0 40px rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50% 50% 6px 6px / 35% 35% 6px 6px;
+  background: linear-gradient(180deg, var(--portal-glow) 0%, transparent 72%);
+  box-shadow:
+    0 0 80px 10px var(--portal-glow),
+    inset 0 0 50px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  animation: portal-breathe 6s ease-in-out infinite;
+}
+
+@keyframes portal-breathe {
+  0%, 100% { box-shadow: 0 0 80px 10px var(--portal-glow), inset 0 0 50px rgba(255, 255, 255, 0.1); }
+  50% { box-shadow: 0 0 110px 18px var(--portal-glow), inset 0 0 60px rgba(255, 255, 255, 0.16); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-arch { animation: none; }
+}
+
+/* Capa do livro — simula lombada (sombra à esquerda) e borda de páginas
+   (listras claras à direita), pra parecer um objeto físico fechado. */
+.book-cover {
+  position: relative;
+  box-shadow:
+    inset 4px 0 8px rgba(0, 0, 0, 0.45),
+    inset -3px 0 0 rgba(255, 255, 255, 0.5),
+    inset -6px 0 0 rgba(255, 255, 255, 0.25),
+    inset -9px 0 0 rgba(255, 255, 255, 0.15),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.book-ornament {
+  width: 34px;
+  height: 34px;
+  opacity: 0.75;
 }
 
 .surface-card {
@@ -54,6 +85,24 @@ body {
   color: var(--surface-foreground);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
+}
+
+/* Botão secundário discreto — pill translúcida com o acento do tema. */
+.pill-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pill-cta:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 /* Tema por produto — casca (nav, layout, componentes) é compartilhada, só a
