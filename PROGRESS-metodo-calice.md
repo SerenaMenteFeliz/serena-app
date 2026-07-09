@@ -26,7 +26,16 @@
 
 ## Feito
 
-(nada ainda — plano recém-criado)
+- **Commit 1** — base visual: tokens novos em `.theme-metodo-calice` (+ tokens
+  de vidro nos 3 temas), fontes Cormorant/Jost/Manrope em `lib/fonts/calice.ts`
+  + `app/metodo-calice/layout.tsx`, classes `veil-bg`/`glass-card`/`glass-orb`/
+  `glass-nav`/`veil-arch`/`float-slow`/`book-drop-cap` no globals.css.
+- **Commit 2** — `CaliceShell` + `CaliceNav` (nav flutuante de vidro, client
+  só pro estado ativo) + ícones SVG próprios + Home nova: saudação com nome
+  (contacts.nome via `getContactFirstName`), hero em arco com livro flutuante
+  (leva pro próximo capítulo), fileira de categorias, card "Sua prática de
+  hoje" (próxima aula destravada) e "Pensamento do dia" (rodízio diário em
+  `lib/calice-daily.ts`, relógio de Brasília).
 
 ## Pendências que dependem do Yan
 

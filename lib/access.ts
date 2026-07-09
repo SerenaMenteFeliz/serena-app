@@ -57,6 +57,16 @@ export async function ensureContactLink(user: User): Promise<string | null> {
   return created.id;
 }
 
+// Nome de exibição (primeiro nome, capitalizado) — `nome` vem da captura do
+// lead e pode estar vazio pra quem entrou só pelo login.
+export async function getContactFirstName(contactId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("contacts").select("nome").eq("id", contactId).maybeSingle();
+  const first = data?.nome?.trim().split(/\s+/)[0];
+  if (!first) return null;
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+}
+
 export async function getActiveProducts(contactId: string): Promise<ProductSlug[]> {
   const supabase = await createClient();
 

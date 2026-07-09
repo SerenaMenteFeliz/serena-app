@@ -1,65 +1,157 @@
 import Link from "next/link";
-import { requireProductAccess } from "@/lib/access";
-import { getChapters, getBookProgress } from "@/lib/calice";
-import { AppShell } from "@/components/AppShell";
-import { PortalArch } from "@/components/PortalArch";
+import { requireProductAccess, getContactFirstName } from "@/lib/access";
+import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
+import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
+import { CaliceShell } from "@/components/calice/CaliceShell";
+import { BookIcon, PlayIcon, UserIcon, ChevronRightIcon, CheckIcon } from "@/components/calice/icons";
 
 export default async function MetodoCalicePage() {
   const { contactId } = await requireProductAccess("metodo_calice");
-  const [chapters, progress] = await Promise.all([
+  const [chapters, progress, lessons, firstName] = await Promise.all([
     getChapters("metodo_calice"),
     getBookProgress(contactId, "metodo_calice"),
+    getLessonsWithProgress(contactId, "metodo_calice"),
+    getContactFirstName(contactId),
   ]);
 
-  const status = progress.completed
-    ? "Livro concluído"
+  // Pra onde o toque no livro leva: próximo capítulo não lido, ou a lista
+  // quando terminou (reler é escolha, não loop automático).
+  const nextChapter =
+    chapters.find((c) => c.order_index > progress.last_chapter_order)?.order_index ??
+    chapters[0]?.order_index;
+  const continueHref = progress.completed
+    ? "/metodo-calice/livro"
+    : nextChapter != null
+      ? `/metodo-calice/livro/${nextChapter}`
+      : "/metodo-calice/livro";
+
+  const percent =
+    chapters.length > 0
+      ? Math.round((Math.min(progress.last_chapter_order, chapters.length) / chapters.length) * 100)
+      : 0;
+  const continueLabel = progress.completed
+    ? "livro concluído · reler"
     : progress.last_chapter_order > 0
-      ? `Capítulo ${progress.last_chapter_order} de ${chapters.length}`
-      : "Toque no livro para começar";
+      ? `continuar · cap. ${nextChapter} · ${percent}%`
+      : "toque para começar o livro";
+
+  const nextLesson = lessons.find((l) => !l.completed && !l.locked);
+  const lessonsDone = lessons.filter((l) => l.completed).length;
+
+  const categorias = [
+    { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
+    { href: "/metodo-calice/aulas", label: "Aulas", border: "var(--sage)", icon: <PlayIcon /> },
+    { href: "/perfil", label: "Perfil", border: "var(--rose)", icon: <UserIcon /> },
+  ];
 
   return (
-    <AppShell
-      theme="metodo-calice"
-      homeHref="/metodo-calice"
-      showHubLink
-      extraNav={[
-        { href: "/metodo-calice/livro", label: "Livro" },
-        { href: "/metodo-calice/aulas", label: "Aulas" },
-      ]}
-    >
-      <div className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center gap-8 text-center">
+    <CaliceShell>
+      {/* saudação */}
+      <header className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl tracking-wide">Método Cálice</h1>
-          <p className="mt-2 text-sm italic opacity-60">um caminho de reprogramação mental</p>
+          <p className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
+            {getGreeting()}
+          </p>
+          <p className="font-display text-[26px] leading-tight">{firstName ?? "que bom te ver"}</p>
         </div>
+        <Link
+          href="/perfil"
+          aria-label="Perfil"
+          className="glass-orb h-[42px] w-[42px]"
+          style={{ borderColor: "color-mix(in srgb, var(--gold) 50%, transparent)" }}
+        >
+          <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
+            {(firstName ?? "S").charAt(0)}
+          </span>
+        </Link>
+      </header>
 
-        <Link href="/metodo-calice/livro" className="group">
-          <PortalArch width={210} height={290}>
+      {/* hero: santuário em arco com o livro flutuando */}
+      <Link href={continueHref} className="veil-arch glass-card group relative mt-5 block h-[246px] overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 50% 85%, rgba(217,168,84,0.22), transparent 60%)" }}
+        />
+        <div
+          className="absolute left-1/2 top-5 h-[150px] w-[150px] -translate-x-1/2 rounded-full"
+          style={{ border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)" }}
+        />
+        <div className="float-slow absolute left-1/2 top-[56%] -translate-x-1/2 -translate-y-1/2">
+          <div
+            className="relative h-[146px] w-[104px] transition-transform duration-300 group-hover:scale-[1.04]"
+            style={{
+              transform: "perspective(700px) rotateY(-12deg)",
+              borderRadius: "3px 8px 8px 3px",
+              background: "rgba(255,255,255,0.78)",
+              border: "1px solid rgba(255,255,255,0.95)",
+              boxShadow: "0 18px 34px -10px rgba(155,130,200,0.35)",
+            }}
+          >
             <div
-              className="book-cover flex h-[230px] w-[160px] flex-col items-center justify-between rounded-sm p-5 text-center transition-transform duration-300 group-hover:scale-105"
-              style={{ background: "linear-gradient(160deg, #4c2f8f, #241736)" }}
-            >
-              <span className="text-[11px] tracking-[0.3em] text-white/60">O LIVRO</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" className="book-ornament text-white">
-                <path d="M6 3h12l-1.2 8.4a4.8 4.8 0 0 1-4.8 4.1 4.8 4.8 0 0 1-4.8-4.1L6 3Z" />
-                <path d="M12 15.5V19M9 21h6" strokeLinecap="round" />
-              </svg>
-              <span className="font-display text-lg leading-tight text-white">
+              className="absolute bottom-0 left-0 top-0 w-2"
+              style={{ background: "color-mix(in srgb, var(--gold) 55%, transparent)", borderRadius: "3px 0 0 3px" }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center px-2.5 text-center">
+              <span className="font-display text-[14px] leading-snug" style={{ color: "#6b5240" }}>
                 Método
                 <br />
                 Cálice
               </span>
             </div>
-          </PortalArch>
-        </Link>
+          </div>
+        </div>
+      </Link>
+      <p className="mt-3 text-center font-veil-sans text-xs opacity-60">{continueLabel}</p>
 
-        <p className="max-w-xs text-sm opacity-70">{status}</p>
-
-        <Link href="/metodo-calice/aulas" className="pill-cta text-sm">
-          Aulas práticas
-          <span aria-hidden>→</span>
-        </Link>
+      {/* categorias */}
+      <div className="mt-5 flex justify-between px-2">
+        {categorias.map((cat) => (
+          <Link key={cat.href} href={cat.href} className="flex flex-col items-center gap-1.5">
+            <span className="glass-orb" style={{ borderColor: cat.border }}>
+              {cat.icon}
+            </span>
+            <span className="font-veil-sans text-[11px] font-semibold">{cat.label}</span>
+          </Link>
+        ))}
       </div>
-    </AppShell>
+
+      {/* prática do dia */}
+      {lessons.length > 0 && (
+        <div className="mt-5">
+          {nextLesson ? (
+            <Link href={`/metodo-calice/aulas/${nextLesson.order_index}`} className="glass-card flex items-center gap-3 px-4 py-3.5">
+              <div className="min-w-0 flex-1">
+                <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--accent)" }}>
+                  Sua prática de hoje
+                </p>
+                <p className="mt-0.5 truncate font-veil-sans text-sm font-medium">
+                  Dia {nextLesson.order_index} — {nextLesson.title}
+                </p>
+              </div>
+              <ChevronRightIcon className="shrink-0 opacity-50" />
+            </Link>
+          ) : (
+            <div className="glass-card flex items-center gap-3 px-4 py-3.5">
+              <CheckIcon className="shrink-0" />
+              <p className="font-veil-sans text-sm font-medium">
+                As {lessonsDone} práticas concluídas — jornada completa
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* pensamento do dia */}
+      <div className="surface-card-dark relative mt-4 overflow-hidden px-[18px] py-4">
+        <div
+          className="absolute -right-2.5 -top-2.5 h-[60px] w-[60px] rounded-full opacity-50"
+          style={{ background: "radial-gradient(circle, var(--gold), transparent 70%)" }}
+        />
+        <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--gold-soft)" }}>
+          Pensamento do dia
+        </p>
+        <p className="mt-1.5 font-display text-base italic leading-snug">“{getDailyQuote()}”</p>
+      </div>
+    </CaliceShell>
   );
 }
