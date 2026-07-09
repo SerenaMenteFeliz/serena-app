@@ -41,6 +41,10 @@
   (voltar + Capítulo N), título serif itálico fixo fora da página, página de
   vidro, capitular dourada e controles explícitos anterior/próxima (o arrasto
   continua, mas deixou de ser o único caminho — fix de affordance).
+- **Commit 4** — aulas: lista com estados claros (concluída dourada, dia atual
+  "hoje" em destaque, bloqueadas com cadeado e sem link), player com header
+  próprio, blocos em vidro (LessonBlockRenderer) e, após concluir, chip
+  dourado + atalho "Ir pro Dia N+1".
 
 ## Pendências que dependem do Yan
 
