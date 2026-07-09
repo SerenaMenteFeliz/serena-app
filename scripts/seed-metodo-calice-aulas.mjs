@@ -652,11 +652,11 @@ async function main() {
       .single();
     if (lessonError) throw lessonError;
 
-    const blockRows = spec.blocks.map((markdown, i) => ({
+    const blockRows = spec.blocks.map((block, i) => ({
       lesson_id: lesson.id,
       order_index: i + 1,
       block_type: "text",
-      content: { markdown },
+      content: { markdown: block.markdown },
     }));
     const { error: blocksError } = await supabase.from("lesson_blocks").insert(blockRows);
     if (blocksError) throw blocksError;
