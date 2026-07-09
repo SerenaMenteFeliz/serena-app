@@ -1,0 +1,47 @@
+# PROGRESS — Redesign Método Cálice ("Santuário + Véu")
+
+> Arquivo de continuidade: se a sessão do modelo terminar no meio, o próximo
+> modelo retoma daqui. Atualizado a cada commit, não só no fim.
+>
+> Referências de design (inspiração, não spec): `C:\Users\Yan\Desktop\Método Cálice.html`
+> (protótipo clicável) e `C:\Users\Yan\Desktop\Visual Directions.pdf`.
+> Direção: vidro fosco (backdrop-blur) sobre véu creme→lilás→creme-dourado,
+> tipografia Cormorant Garamond (serif) + Jost (labels) + Manrope (UI),
+> dourado #D9A854 + roxo profundo #2B1E42 como contraste pontual.
+
+## Plano
+
+1. [ ] Base visual: tokens novos em `.theme-metodo-calice`, fontes via next/font,
+       classes de vidro (`veil-bg`, `glass-card`, `glass-nav`, `veil-arch`) — commit 1
+2. [ ] `CaliceShell` + nav flutuante de vidro + Home redesenhada (hero arco com
+       livro flutuante, ícones circulares, card escuro "Pensamento do dia") — commit 2
+3. [ ] Livro: lista de capítulos (dots de status) + leitor (painel de vidro,
+       drop cap, botões explícitos de página) — commit 3
+4. [ ] Aulas: lista (Dia N — título, estados) + player (CTA escuro arredondado) — commit 4
+5. [ ] Notas por capítulo: migration `0006_book_notes.sql` + lib + UI
+       (feature liga sozinha quando a migration for aplicada) — commit 5
+6. [ ] Perfil (stats por produto, linguagem de vidro) + login do Cálice — commit 6
+7. [ ] Verificação: build + screenshots mobile (Playwright 390×844, usuário de
+       teste `preview-serena-app@example.com` via scripts/seed-test-user.mjs) — commit 7
+
+## Feito
+
+(nada ainda — plano recém-criado)
+
+## Pendências que dependem do Yan
+
+- **Aplicar a migration `supabase/migrations/0006_book_notes.sql`** quando ela
+  existir (commit 5) — não há senha do banco no `.env.local`, só service role
+  (REST não roda DDL). Comando: `node scripts/run-migration.mjs supabase/migrations/0006_book_notes.sql <SENHA_DB>`.
+  Até lá o app funciona normal, o recurso de Notas só fica oculto.
+
+## Decisões tomadas
+
+- Notas ancoradas **por capítulo** (não por página): a paginação real é fluida
+  (CSS multi-coluna, muda com o tamanho da tela), então "página 3" não é um
+  endereço estável — capítulo é.
+- Tokens de vidro (`--glass`, `--veil-*`, `--shadow-tint`) definidos nos 3 temas
+  (calice, lar-interior, hub), pra linguagem poder ser adotada pelos outros
+  produtos sem retrabalho. Nada visual muda no Lar Interior/hub por enquanto.
+- Fontes do Cálice carregadas só no layout do produto (`app/metodo-calice/layout.tsx`
+  + página de login dele) — não pesam nos outros produtos.

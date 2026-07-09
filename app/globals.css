@@ -232,18 +232,45 @@ body {
   --surface-foreground: #3a2c14;
   --surface-dark: #2a1f10;
   --surface-dark-foreground: #f5ead2;
+  --veil-0: #fdfcf9;
+  --veil-1: #fbf6ec;
+  --veil-2: #f6ecd8;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --shadow-tint: rgba(196, 155, 82, 0.35);
 }
 
+/* Paleta da direção "Santuário + Véu" (09/07): creme-quente → lilás claro,
+   tinta ameixa suave, dourado como acento de leitura e roxo profundo só nos
+   cards de contraste. O roxo saturado da v1 saiu de cena. */
 .theme-metodo-calice {
-  --bg: #f5f1fb;
-  --bg-glow: rgba(139, 92, 246, 0.25);
-  --ink: #2c1f4a;
-  --accent: #7c3aed;
+  --bg: #faf6fb;
+  --bg-glow: rgba(201, 187, 232, 0.45);
+  --ink: #453d57;
+  --accent: #8a6d3e;
   --accent-foreground: #ffffff;
   --surface: #ffffff;
-  --surface-foreground: #2c1f4a;
-  --surface-dark: #241736;
-  --surface-dark-foreground: #f3edff;
+  --surface-foreground: #453d57;
+  --surface-dark: #2b1e42;
+  --surface-dark-foreground: #fbf6f0;
+  --veil-0: #fdfcfe;
+  --veil-1: #faf6fb;
+  --veil-2: #f7efe3;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --shadow-tint: rgba(155, 130, 200, 0.4);
+  /* acentos secundários (ícones de categoria, estados) */
+  --gold: #d9a854;
+  --gold-soft: #e7c77a;
+  --lavender: #c9bbe8;
+  --deep-lavender: #8b5fbf;
+  --sage: #b9cdbf;
+  --rose: #e7b7b0;
+  /* tipografia própria do produto (carregada em app/metodo-calice/layout.tsx) */
+  --font-display: var(--font-calice-serif), Georgia, serif;
+  font-family: var(--font-calice-ui), var(--font-geist-sans), sans-serif;
 }
 
 .theme-hub {
@@ -256,4 +283,122 @@ body {
   --surface-foreground: #113330;
   --surface-dark: #0e2a26;
   --surface-dark-foreground: #e3f5f1;
+  --veil-0: #fbfdfd;
+  --veil-1: #eff8f6;
+  --veil-2: #e2f1ec;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --shadow-tint: rgba(94, 182, 166, 0.3);
+}
+
+/* ── Linguagem "Véu" (vidro fosco sobre véu tonal) ─────────────────────────
+   Nasceu com a direção Santuário + Véu do Método Cálice; os tokens vivem em
+   todos os temas pros outros produtos poderem adotar sem retrabalho. */
+
+.veil-bg {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: linear-gradient(170deg, var(--veil-0) 0%, var(--veil-1) 55%, var(--veil-2) 100%);
+  color: var(--ink);
+}
+
+/* Painel de vidro padrão — translúcido de verdade (blur no que passa atrás),
+   borda quase-branca fininha e sombra tingida da paleta, não preta. */
+.glass-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 20px -14px var(--shadow-tint);
+}
+
+.glass-card-strong {
+  background: var(--glass-strong);
+}
+
+/* Ícone circular de categoria (fileira da home) — a cor da borda identifica
+   a categoria, vem por `borderColor` inline no componente. */
+.glass-orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1.4px solid var(--glass-border);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Arco do hero (Santuário): topo em meia-lua, base quase reta. A variante
+   -sm serve pra janelas menores (arte de capítulo, vitrines). */
+.veil-arch {
+  border-radius: 130px 130px 18px 18px;
+}
+
+.veil-arch-sm {
+  border-radius: 76px 76px 14px 14px;
+}
+
+/* Nav flutuante de vidro — solta da borda, com respiro pro gesto do iOS. */
+.glass-nav {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  width: min(100% - 2rem, 26rem);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.8rem 0.6rem;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 26px -12px var(--shadow-tint);
+  z-index: 40;
+}
+
+/* Levitação sutil (livro do hero). Composta num wrapper próprio pra não
+   brigar com o transform de posicionamento do elemento de dentro. */
+.float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-slow { animation: none; }
+}
+
+/* Capitular dourada na abertura do capítulo — só quando o texto começa em
+   parágrafo (títulos não ganham capitular). */
+.book-drop-cap > p:first-child::first-letter {
+  font-family: var(--font-display);
+  font-size: 2.7em;
+  line-height: 0.8;
+  float: left;
+  padding: 0.06em 0.1em 0 0;
+  color: var(--gold, var(--accent));
+}
+
+/* Card de contraste no Cálice ganha o gradiente roxo do véu (nos outros
+   temas continua o sólido de --surface-dark). */
+.theme-metodo-calice .surface-card-dark {
+  background: linear-gradient(160deg, rgba(43, 30, 66, 0.94), rgba(74, 46, 99, 0.88));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Labels/microcopy do Cálice usam a Jost. */
+.font-veil-sans {
+  font-family: var(--font-calice-sans), var(--font-geist-sans), sans-serif;
 }
