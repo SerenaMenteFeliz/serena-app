@@ -24,14 +24,14 @@ export function LoginForm({ produto }: { produto?: string }) {
 
   if (status === "enviado") {
     return (
-      <p className="surface-card px-5 py-4 text-center">
+      <p className="glass-card rounded-[20px] px-5 py-4 text-center">
         Te mandamos um link de acesso para <strong>{email}</strong>. Confira seu e-mail.
       </p>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="surface-card flex w-full max-w-sm flex-col gap-3 px-6 py-6">
+    <form onSubmit={handleSubmit} className="glass-card flex w-full max-w-sm flex-col gap-3 rounded-[20px] px-6 py-6">
       <label htmlFor="email" className="text-sm opacity-80">
         {produto ? `Entrar em ${produto}` : "Entrar no Serena Mente Feliz"}
       </label>

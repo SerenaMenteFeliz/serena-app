@@ -51,6 +51,10 @@
   liga sozinho depois), painel recolhível no leitor (`ChapterNote`, corpo
   vazio apaga), página `/metodo-calice/notas` (marcador + lista + remover) e
   orb "Notas" na home quando ativo.
+- **Commit 6** — perfil do guarda-chuva redesenhado (avatar-inicial, stats
+  reais do Cálice, produtos ativos, "Sair da conta" via server action nova em
+  `lib/actions/auth.ts`) + login do Cálice com véu/arco/livro flutuante
+  (`CaliceBook` extraído pra reuso) + LoginForm em vidro.
 
 ## Pendências que dependem do Yan
 

@@ -4,6 +4,7 @@ import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/cali
 import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
 import { CaliceShell } from "@/components/calice/CaliceShell";
+import { CaliceBook } from "@/components/calice/CaliceBook";
 import { BookIcon, PlayIcon, PenIcon, UserIcon, ChevronRightIcon, CheckIcon } from "@/components/calice/icons";
 
 export default async function MetodoCalicePage() {
@@ -81,29 +82,8 @@ export default async function MetodoCalicePage() {
           className="absolute left-1/2 top-5 h-[150px] w-[150px] -translate-x-1/2 rounded-full"
           style={{ border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)" }}
         />
-        <div className="float-slow absolute left-1/2 top-[56%] -translate-x-1/2 -translate-y-1/2">
-          <div
-            className="relative h-[146px] w-[104px] transition-transform duration-300 group-hover:scale-[1.04]"
-            style={{
-              transform: "perspective(700px) rotateY(-12deg)",
-              borderRadius: "3px 8px 8px 3px",
-              background: "rgba(255,255,255,0.78)",
-              border: "1px solid rgba(255,255,255,0.95)",
-              boxShadow: "0 18px 34px -10px rgba(155,130,200,0.35)",
-            }}
-          >
-            <div
-              className="absolute bottom-0 left-0 top-0 w-2"
-              style={{ background: "color-mix(in srgb, var(--gold) 55%, transparent)", borderRadius: "3px 0 0 3px" }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center px-2.5 text-center">
-              <span className="font-display text-[14px] leading-snug" style={{ color: "#6b5240" }}>
-                Método
-                <br />
-                Cálice
-              </span>
-            </div>
-          </div>
+        <div className="float-slow absolute left-1/2 top-[56%] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:scale-[1.04]">
+          <CaliceBook />
         </div>
       </Link>
       <p className="mt-3 text-center font-veil-sans text-xs opacity-60">{continueLabel}</p>
