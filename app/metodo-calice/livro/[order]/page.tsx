@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireProductAccess } from "@/lib/access";
 import { getChapter, getChapters, saveBookProgress, evaluateCompletion } from "@/lib/calice";
+import { notesFeatureEnabled, getNote } from "@/lib/calice-notes";
+import { guardarNota } from "@/lib/actions/calice";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { BookReader } from "@/components/BookReader";
+import { ChapterNote } from "@/components/calice/ChapterNote";
 import { ChevronLeftIcon } from "@/components/calice/icons";
 
 export default async function CapituloPage({ params }: { params: Promise<{ order: string }> }) {
@@ -23,6 +26,9 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
 
   const proximo = chapters.find((c) => c.order_index === orderNum + 1);
   const anterior = chapters.find((c) => c.order_index === orderNum - 1);
+
+  const notasOn = await notesFeatureEnabled();
+  const nota = notasOn ? await getNote(contactId, "metodo_calice", orderNum) : null;
 
   return (
     <CaliceShell nav={false}>
@@ -47,6 +53,14 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
         nextHref={proximo ? `/metodo-calice/livro/${proximo.order_index}` : null}
         endHref="/metodo-calice/livro"
       />
+
+      {notasOn && (
+        <ChapterNote
+          chapterOrder={orderNum}
+          initialBody={nota?.body ?? ""}
+          action={guardarNota.bind(null, orderNum)}
+        />
+      )}
     </CaliceShell>
   );
 }

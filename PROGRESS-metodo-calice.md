@@ -45,6 +45,12 @@
   "hoje" em destaque, bloqueadas com cadeado e sem link), player com header
   próprio, blocos em vidro (LessonBlockRenderer) e, após concluir, chip
   dourado + atalho "Ir pro Dia N+1".
+- **Commit 5** — Notas por capítulo: migration `0006_book_notes.sql` (uma nota
+  por capítulo/pessoa, RLS via contacts.auth_user_id), `lib/calice-notes.ts`
+  com feature-flag automático (recurso oculto até a migration ser aplicada;
+  liga sozinho depois), painel recolhível no leitor (`ChapterNote`, corpo
+  vazio apaga), página `/metodo-calice/notas` (marcador + lista + remover) e
+  orb "Notas" na home quando ativo.
 
 ## Pendências que dependem do Yan
 

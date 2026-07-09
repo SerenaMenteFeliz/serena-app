@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { requireProductAccess, getContactFirstName } from "@/lib/access";
 import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
+import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
 import { CaliceShell } from "@/components/calice/CaliceShell";
-import { BookIcon, PlayIcon, UserIcon, ChevronRightIcon, CheckIcon } from "@/components/calice/icons";
+import { BookIcon, PlayIcon, PenIcon, UserIcon, ChevronRightIcon, CheckIcon } from "@/components/calice/icons";
 
 export default async function MetodoCalicePage() {
   const { contactId } = await requireProductAccess("metodo_calice");
-  const [chapters, progress, lessons, firstName] = await Promise.all([
+  const [chapters, progress, lessons, firstName, notasOn] = await Promise.all([
     getChapters("metodo_calice"),
     getBookProgress(contactId, "metodo_calice"),
     getLessonsWithProgress(contactId, "metodo_calice"),
     getContactFirstName(contactId),
+    notesFeatureEnabled(),
   ]);
 
   // Pra onde o toque no livro leva: próximo capítulo não lido, ou a lista
@@ -41,6 +43,9 @@ export default async function MetodoCalicePage() {
   const categorias = [
     { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
     { href: "/metodo-calice/aulas", label: "Aulas", border: "var(--sage)", icon: <PlayIcon /> },
+    ...(notasOn
+      ? [{ href: "/metodo-calice/notas", label: "Notas", border: "var(--lavender)", icon: <PenIcon /> }]
+      : []),
     { href: "/perfil", label: "Perfil", border: "var(--rose)", icon: <UserIcon /> },
   ];
 
