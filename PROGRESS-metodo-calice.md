@@ -11,18 +11,21 @@
 
 ## Plano
 
-1. [ ] Base visual: tokens novos em `.theme-metodo-calice`, fontes via next/font,
+1. [x] Base visual: tokens novos em `.theme-metodo-calice`, fontes via next/font,
        classes de vidro (`veil-bg`, `glass-card`, `glass-nav`, `veil-arch`) — commit 1
-2. [ ] `CaliceShell` + nav flutuante de vidro + Home redesenhada (hero arco com
+2. [x] `CaliceShell` + nav flutuante de vidro + Home redesenhada (hero arco com
        livro flutuante, ícones circulares, card escuro "Pensamento do dia") — commit 2
-3. [ ] Livro: lista de capítulos (dots de status) + leitor (painel de vidro,
+3. [x] Livro: lista de capítulos (dots de status) + leitor (painel de vidro,
        drop cap, botões explícitos de página) — commit 3
-4. [ ] Aulas: lista (Dia N — título, estados) + player (CTA escuro arredondado) — commit 4
-5. [ ] Notas por capítulo: migration `0006_book_notes.sql` + lib + UI
+4. [x] Aulas: lista (estados claros) + player (CTA escuro arredondado) — commit 4
+5. [x] Notas por capítulo: migration `0006_book_notes.sql` + lib + UI
        (feature liga sozinha quando a migration for aplicada) — commit 5
-6. [ ] Perfil (stats por produto, linguagem de vidro) + login do Cálice — commit 6
-7. [ ] Verificação: build + screenshots mobile (Playwright 390×844, usuário de
-       teste `preview-serena-app@example.com` via scripts/seed-test-user.mjs) — commit 7
+6. [x] Perfil (stats por produto, linguagem de vidro) + login do Cálice — commit 6
+7. [x] Verificação: build + screenshots mobile (Playwright 390×844) — commit 7
+
+**STATUS: CONCLUÍDO (09/07/2026).** Todas as telas verificadas visualmente em
+viewport mobile com usuário de teste logado de ponta a ponta. Única pendência
+externa: aplicar a migration 0006 (ver abaixo).
 
 ## Feito
 
@@ -55,6 +58,11 @@
   reais do Cálice, produtos ativos, "Sair da conta" via server action nova em
   `lib/actions/auth.ts`) + login do Cálice com véu/arco/livro flutuante
   (`CaliceBook` extraído pra reuso) + LoginForm em vidro.
+- **Commit 7** — verificação visual completa (`scripts/verify-redesign.mjs`:
+  seed + magic link + Playwright 390×844 em todas as telas) e fix achado nela:
+  os títulos do banco já se auto-descrevem ("Capítulo 3.1 · ...", "Dia 4 — ...")
+  e a numeração NÃO bate com order_index — a UI parou de numerar por conta
+  própria (`lib/calice-format.ts`). Build de produção limpo.
 
 ## Pendências que dependem do Yan
 

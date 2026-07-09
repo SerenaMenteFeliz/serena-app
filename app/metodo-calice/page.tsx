@@ -32,10 +32,11 @@ export default async function MetodoCalicePage() {
     chapters.length > 0
       ? Math.round((Math.min(progress.last_chapter_order, chapters.length) / chapters.length) * 100)
       : 0;
+  // sem "cap. N": a numeração real dos títulos (3.1, 3.2...) não bate com order_index
   const continueLabel = progress.completed
-    ? "livro concluído · reler"
+    ? "livro concluído · toque para reler"
     : progress.last_chapter_order > 0
-      ? `continuar · cap. ${nextChapter} · ${percent}%`
+      ? `toque para continuar a leitura · ${percent}%`
       : "toque para começar o livro";
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
@@ -109,9 +110,7 @@ export default async function MetodoCalicePage() {
                 <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--accent)" }}>
                   Sua prática de hoje
                 </p>
-                <p className="mt-0.5 truncate font-veil-sans text-sm font-medium">
-                  Dia {nextLesson.order_index} — {nextLesson.title}
-                </p>
+                <p className="mt-0.5 truncate font-veil-sans text-sm font-medium">{nextLesson.title}</p>
               </div>
               <ChevronRightIcon className="shrink-0 opacity-50" />
             </Link>

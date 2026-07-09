@@ -4,6 +4,7 @@ import { requireProductAccess } from "@/lib/access";
 import { getChapter, getChapters, saveBookProgress, evaluateCompletion } from "@/lib/calice";
 import { notesFeatureEnabled, getNote } from "@/lib/calice-notes";
 import { guardarNota } from "@/lib/actions/calice";
+import { tituloCapitulo } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { BookReader } from "@/components/BookReader";
 import { ChapterNote } from "@/components/calice/ChapterNote";
@@ -30,6 +31,8 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
   const notasOn = await notesFeatureEnabled();
   const nota = notasOn ? await getNote(contactId, "metodo_calice", orderNum) : null;
 
+  const { rotulo, nome } = tituloCapitulo(chapter.title);
+
   return (
     <CaliceShell nav={false}>
       <div className="flex items-center justify-between">
@@ -37,14 +40,14 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
           <ChevronLeftIcon />
         </Link>
         <span className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.08em] opacity-55">
-          Capítulo {chapter.order_index}
+          {rotulo ?? "O livro"}
         </span>
         {/* espelho do botão de voltar, pra manter o label centrado */}
         <span className="w-7" aria-hidden />
       </div>
 
       <h1 className="font-display mb-4 mt-3 text-center text-[21px] italic leading-snug">
-        {chapter.title}
+        {nome}
       </h1>
 
       <BookReader

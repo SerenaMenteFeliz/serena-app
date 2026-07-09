@@ -22,8 +22,9 @@ export default async function AulasPage() {
           if (l.locked) {
             return (
               <li key={l.id} className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
+                {/* título já vem "Dia N — ..." do banco, não prefixar */}
                 <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
-                  Dia {l.order_index} — {l.title}
+                  {l.title}
                 </span>
                 <LockIcon className="shrink-0 opacity-35" />
               </li>
@@ -39,7 +40,7 @@ export default async function AulasPage() {
                   className={`min-w-0 flex-1 font-veil-sans text-sm leading-snug ${atual ? "font-bold" : "font-medium"}`}
                   style={atual ? { color: "color-mix(in srgb, var(--deep-lavender) 45%, var(--ink))" } : undefined}
                 >
-                  Dia {l.order_index} — {l.title}
+                  {l.title}
                 </span>
                 {l.completed && (
                   <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>

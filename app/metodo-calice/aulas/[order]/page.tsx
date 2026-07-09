@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireProductAccess } from "@/lib/access";
 import { getLessonByOrder, getLessonsWithProgress } from "@/lib/calice";
 import { marcarAulaConcluida } from "@/lib/actions/calice";
+import { tituloAula } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
 import { ChevronLeftIcon, CheckIcon } from "@/components/calice/icons";
@@ -36,7 +37,8 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
         <span className="w-7" aria-hidden />
       </div>
 
-      <h1 className="font-display mt-3 text-[22px] italic leading-snug">{lesson.title}</h1>
+      {/* o eyebrow acima já diz "Dia N de 10" — aqui só o nome da prática */}
+      <h1 className="font-display mt-3 text-[22px] italic leading-snug">{tituloAula(lesson.title)}</h1>
 
       <div className="mt-4 flex flex-col gap-4">
         {lesson.blocks.map((block) => (
@@ -59,7 +61,7 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
                 className="mt-3 block text-center font-veil-sans text-sm font-bold"
                 style={{ color: "var(--accent)" }}
               >
-                Ir pro Dia {proxima.order_index} — {proxima.title} ›
+                Seguir pra {proxima.title} ›
               </Link>
             )}
           </>

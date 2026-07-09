@@ -31,11 +31,9 @@ export default async function NotasPage() {
       {atual != null && !progress.completed && (
         <Link href={`/metodo-calice/livro/${atual}`} className="surface-card-dark mt-4 block px-4 py-3.5">
           <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--gold-soft)" }}>
-            Marcador de página
+            Marcador de página — continuar de
           </p>
-          <p className="mt-1 font-display text-[15px]">
-            Cap. {atual} — {titulo.get(atual)}
-          </p>
+          <p className="mt-1 font-display text-[15px]">{titulo.get(atual)}</p>
         </Link>
       )}
 
@@ -61,7 +59,7 @@ export default async function NotasPage() {
                   className="font-veil-sans min-w-0 truncate text-[11px] font-bold"
                   style={{ color: "var(--accent)" }}
                 >
-                  Cap. {n.chapter_order} · {titulo.get(n.chapter_order) ?? "capítulo"}
+                  {titulo.get(n.chapter_order) ?? `Capítulo ${n.chapter_order}`}
                 </Link>
                 <form action={removerNota.bind(null, n.chapter_order)}>
                   <button type="submit" className="font-veil-sans shrink-0 text-[11px] opacity-40 transition-opacity hover:opacity-70">
