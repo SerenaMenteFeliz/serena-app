@@ -16,7 +16,7 @@ export default async function AulasPage() {
         { href: "/metodo-calice/aulas", label: "Aulas" },
       ]}
     >
-      <h1 className="text-2xl font-semibold mb-6">Aulas práticas</h1>
+      <h1 className="font-display text-2xl mb-6">Aulas práticas</h1>
       <ol className="flex flex-col gap-2">
         {lessons.map((l) =>
           l.locked ? (

@@ -25,11 +25,11 @@ export default async function LivroPage() {
         { href: "/metodo-calice/aulas", label: "Aulas" },
       ]}
     >
-      <h1 className="text-2xl font-semibold mb-2">Método Cálice — o livro</h1>
+      <h1 className="font-display text-2xl mb-2">Método Cálice — o livro</h1>
       {progress.last_chapter_order > 0 && !progress.completed && (
         <p className="mb-6 opacity-80">
           Você parou no capítulo {progress.last_chapter_order}.{" "}
-          <Link href={`/metodo-calice/livro/${proximoCapitulo}`} className="underline">
+          <Link href={`/metodo-calice/livro/${proximoCapitulo}`} className="font-medium hover:underline" style={{ color: "var(--accent)" }}>
             Continuar de onde parou
           </Link>
         </p>

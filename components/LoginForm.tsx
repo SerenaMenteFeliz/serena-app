@@ -42,17 +42,26 @@ export function LoginForm({ produto }: { produto?: string }) {
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="rounded border border-white/20 bg-black/20 px-3 py-2 outline-none placeholder:opacity-50"
+        className="rounded-lg px-3 py-2 outline-none placeholder:opacity-50"
+        style={{
+          border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)",
+          background: "color-mix(in srgb, var(--accent) 6%, white)",
+          color: "var(--ink)",
+        }}
       />
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded px-4 py-2 font-medium"
+        className="rounded-lg px-4 py-2 font-medium disabled:opacity-60"
         style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
       >
         {status === "loading" ? "Enviando..." : "Receber link de acesso"}
       </button>
-      {status === "erro" && <p role="alert" className="text-sm text-red-300">Não deu certo, tenta de novo.</p>}
+      {status === "erro" && (
+        <p role="alert" className="text-sm" style={{ color: "#b91c1c" }}>
+          Não deu certo, tenta de novo.
+        </p>
+      )}
     </form>
   );
 }

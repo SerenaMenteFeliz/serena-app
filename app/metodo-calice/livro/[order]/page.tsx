@@ -34,22 +34,22 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
     >
       <article className="surface-card mx-auto max-w-2xl px-6 py-8">
         <p className="mb-1 text-sm opacity-60">Capítulo {chapter.order_index}</p>
-        <h1 className="mb-6 text-2xl font-semibold">{chapter.title}</h1>
-        <div className="prose prose-invert max-w-none leading-relaxed">
+        <h1 className="font-display mb-6 text-2xl">{chapter.title}</h1>
+        <div className="reading-content">
           <ReactMarkdown>{chapter.body_md}</ReactMarkdown>
         </div>
       </article>
 
-      <div className="mx-auto mt-6 flex max-w-2xl justify-between">
+      <div className="mx-auto mt-6 flex max-w-2xl justify-between text-sm" style={{ color: "var(--accent)" }}>
         {anterior ? (
-          <Link href={`/metodo-calice/livro/${anterior.order_index}`} className="underline opacity-80">
+          <Link href={`/metodo-calice/livro/${anterior.order_index}`} className="hover:underline">
             ← {anterior.title}
           </Link>
         ) : (
           <span />
         )}
         {proximo ? (
-          <Link href={`/metodo-calice/livro/${proximo.order_index}`} className="underline opacity-80">
+          <Link href={`/metodo-calice/livro/${proximo.order_index}`} className="hover:underline">
             {proximo.title} →
           </Link>
         ) : (

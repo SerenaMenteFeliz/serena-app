@@ -5,9 +5,9 @@ import { PortalArch } from "@/components/PortalArch";
 // aponta pra cá — primeira impressão já bate com o que a pessoa comprou.
 export default function EntrarMetodoCalicePage() {
   return (
-    <main className="theme-metodo-calice portal-bg flex flex-col items-center justify-center gap-6 p-6">
-      <PortalArch width={160} height={200} />
-      <h1 className="text-2xl font-semibold -mt-16">Método Cálice</h1>
+    <main className="theme-metodo-calice portal-bg flex min-h-screen flex-col items-center justify-center gap-8 p-6" style={{ color: "var(--ink)" }}>
+      <PortalArch width={150} height={190} />
+      <h1 className="font-display text-2xl">Método Cálice</h1>
       <LoginForm produto="Método Cálice" />
     </main>
   );

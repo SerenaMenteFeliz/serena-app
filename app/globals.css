@@ -10,60 +10,90 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Linguagem visual compartilhada: "portal" — atmosfera etérea/mística em
-   todo o app (fundo profundo + brilho radial + campo de estrelas sutil).
-   Cada produto muda só a paleta (--portal-deep / --portal-glow / --surface),
-   não a linguagem. Aplicado num wrapper div (não dá pra aninhar <html>),
-   ver components/AppShell.tsx. */
+/* Linguagem visual compartilhada: "portal" — fundo claro e etéreo (lilás/
+   dourado/teal suave conforme o produto), nunca branco puro nem escuro
+   pesado. Brilho radial + pontinhos de luz bem discretos dão o clima
+   místico sem perder legibilidade. Cada produto muda só a paleta, ver
+   `.theme-*` abaixo. Aplicado num wrapper div, ver components/AppShell.tsx. */
 .portal-bg {
   position: relative;
   min-height: 100vh;
-  background-color: var(--portal-deep);
+  background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 900px 600px at 50% -10%, var(--portal-glow) 0%, transparent 65%),
-    radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 80% 30%, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 65% 85%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1px 1px at 25% 55%, rgba(255, 255, 255, 0.4), transparent);
+    radial-gradient(ellipse 900px 500px at 50% -8%, var(--bg-glow) 0%, transparent 68%),
+    radial-gradient(2px 2px at 12% 18%, var(--accent), transparent),
+    radial-gradient(2px 2px at 82% 26%, var(--accent), transparent),
+    radial-gradient(2px 2px at 42% 65%, var(--accent), transparent),
+    radial-gradient(2px 2px at 68% 82%, var(--accent), transparent),
+    radial-gradient(2px 2px at 22% 50%, var(--accent), transparent);
   background-repeat: no-repeat, repeat, repeat, repeat, repeat, repeat;
-  background-size: 100% 100%, 220px 220px, 260px 260px, 200px 200px, 240px 240px, 180px 180px;
-  color: var(--surface-foreground);
+  background-size: 100% 100%, 240px 240px, 280px 280px, 220px 220px, 260px 260px, 200px 200px;
+  color: var(--ink);
 }
 
-/* Moldura em arco (portal/porta) — decorativa, usada em torno de elementos
-   centrais (capa do livro, logo de entrada). Rim mais definido + brilho
-   pulsando bem devagar (sutil, respeita prefers-reduced-motion). */
+/* pontinhos de luz — bem discretos, só textura, não decoração chamativa */
+.portal-bg { background-blend-mode: normal, luminosity, luminosity, luminosity, luminosity, luminosity; }
+
+/* Moldura em arco — janela pra uma cena luminosa dentro (livro, ícone de
+   sessão), como uma porta pra outra dimensão. Leve e clara, com o brilho
+   "respirando" bem devagar por dentro — não domina a tela, emoldura. */
 .portal-arch {
   position: relative;
-  border-radius: 50% 50% 6px 6px / 35% 35% 6px 6px;
-  background: linear-gradient(180deg, var(--portal-glow) 0%, transparent 72%);
+  border-radius: 50% 50% 8px 8px / 38% 38% 8px 8px;
+  background: radial-gradient(ellipse at 50% 30%, var(--bg-glow) 0%, transparent 70%);
   box-shadow:
-    0 0 80px 10px var(--portal-glow),
-    inset 0 0 50px rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+    0 0 50px 6px var(--bg-glow),
+    inset 0 0 30px rgba(255, 255, 255, 0.5);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   animation: portal-breathe 6s ease-in-out infinite;
 }
 
 @keyframes portal-breathe {
-  0%, 100% { box-shadow: 0 0 80px 10px var(--portal-glow), inset 0 0 50px rgba(255, 255, 255, 0.1); }
-  50% { box-shadow: 0 0 110px 18px var(--portal-glow), inset 0 0 60px rgba(255, 255, 255, 0.16); }
+  0%, 100% { box-shadow: 0 0 50px 6px var(--bg-glow), inset 0 0 30px rgba(255, 255, 255, 0.5); }
+  50% { box-shadow: 0 0 72px 12px var(--bg-glow), inset 0 0 40px rgba(255, 255, 255, 0.65); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .portal-arch { animation: none; }
+  .portal-arch, .glow-orb-ring { animation: none; }
 }
 
-/* Capa do livro — simula lombada (sombra à esquerda) e borda de páginas
-   (listras claras à direita), pra parecer um objeto físico fechado. */
+/* Glow circular respirando — usado sozinho (sem arco) em momentos de
+   sessão/prática (ex: player de meditação): ondas concêntricas de luz. */
+.glow-orb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glow-orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--bg-glow) 0%, transparent 70%);
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+.glow-orb-ring:nth-child(2) { inset: 12%; animation-delay: -1.3s; }
+.glow-orb-ring:nth-child(3) { inset: 26%; animation-delay: -2.6s; }
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.96); }
+  50% { opacity: 0.9; transform: scale(1.04); }
+}
+
+/* Capa do livro — lombada (sombra à esquerda) e borda de páginas (listras
+   claras à direita), pra parecer um objeto físico fechado, mesmo sendo um
+   objeto rico/escuro dentro de uma cena clara. */
 .book-cover {
   position: relative;
   box-shadow:
@@ -71,7 +101,7 @@ body {
     inset -3px 0 0 rgba(255, 255, 255, 0.5),
     inset -6px 0 0 rgba(255, 255, 255, 0.25),
     inset -9px 0 0 rgba(255, 255, 255, 0.15),
-    0 18px 40px rgba(0, 0, 0, 0.55);
+    0 18px 40px rgba(0, 0, 0, 0.25);
 }
 
 .book-ornament {
@@ -80,56 +110,131 @@ body {
   opacity: 0.75;
 }
 
+/* Card elevado padrão — branco/quase-branco sobre o fundo tonal, elevação
+   por sombra suave (não borda), como os cards do Auraly. */
 .surface-card {
   background: var(--surface);
   color: var(--surface-foreground);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(20, 10, 40, 0.08);
 }
 
-/* Botão secundário discreto — pill translúcida com o acento do tema. */
+/* Card de destaque — contraste saturado/escuro pontual sobre o fundo claro
+   (técnica do Auraly: quase tudo claro, só o card de ênfase é escuro). */
+.surface-card-dark {
+  background: var(--surface-dark);
+  color: var(--surface-dark-foreground);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(20, 10, 40, 0.18);
+}
+
+/* Tipografia de leitura (livro/aulas) — sem plugin de typography, feita à
+   mão: hierarquia clara entre título de seção, citação de destaque e corpo,
+   pro texto longo (capítulos, exercícios) ficar legível e não "tudo igual". */
+.reading-content {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.reading-content > * + * {
+  margin-top: 1.1em;
+}
+
+.reading-content h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-top: 2em;
+  line-height: 1.3;
+}
+
+.reading-content h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 1.75em;
+  color: color-mix(in srgb, var(--accent) 70%, var(--ink));
+}
+
+.reading-content strong {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ink));
+}
+
+.reading-content em {
+  font-family: var(--font-display);
+}
+
+.reading-content blockquote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  padding-left: 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: color-mix(in srgb, var(--accent) 60%, var(--ink));
+}
+
+.reading-content ul, .reading-content ol {
+  padding-left: 1.4em;
+}
+
+.reading-content li + li {
+  margin-top: 0.4em;
+}
+
+/* Botão secundário — pill com o acento do tema, discreta. */
 .pill-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: inherit;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--ink);
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .pill-cta:hover {
-  background: rgba(255, 255, 255, 0.11);
-  border-color: rgba(255, 255, 255, 0.24);
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 /* Tema por produto — casca (nav, layout, componentes) é compartilhada, só a
-   paleta muda. Cada um é uma variação da mesma linguagem de portal. */
+   paleta muda. Fundo claro em todos, variando o tom (lilás/dourado/teal). */
 .theme-lar-interior {
-  --portal-deep: #0e1a14;
-  --portal-glow: rgba(196, 155, 82, 0.35);
-  --accent: #c49b52;
-  --accent-foreground: #1a1408;
-  --surface: rgba(20, 32, 25, 0.7);
-  --surface-foreground: #f2ead9;
+  --bg: #fbf6ec;
+  --bg-glow: rgba(196, 155, 82, 0.25);
+  --ink: #3a2c14;
+  --accent: #b9862f;
+  --accent-foreground: #ffffff;
+  --surface: #ffffff;
+  --surface-foreground: #3a2c14;
+  --surface-dark: #2a1f10;
+  --surface-dark-foreground: #f5ead2;
 }
 
 .theme-metodo-calice {
-  --portal-deep: #120a24;
-  --portal-glow: rgba(139, 92, 246, 0.4);
-  --accent: #8b5cf6;
+  --bg: #f5f1fb;
+  --bg-glow: rgba(139, 92, 246, 0.25);
+  --ink: #2c1f4a;
+  --accent: #7c3aed;
   --accent-foreground: #ffffff;
-  --surface: rgba(30, 20, 55, 0.7);
-  --surface-foreground: #ece7fb;
+  --surface: #ffffff;
+  --surface-foreground: #2c1f4a;
+  --surface-dark: #241736;
+  --surface-dark-foreground: #f3edff;
 }
 
 .theme-hub {
-  --portal-deep: #0a1a1c;
-  --portal-glow: rgba(94, 182, 166, 0.35);
-  --accent: #5eb6a6;
-  --accent-foreground: #06211d;
-  --surface: rgba(15, 34, 32, 0.7);
-  --surface-foreground: #e6f5f1;
+  --bg: #eff8f6;
+  --bg-glow: rgba(94, 182, 166, 0.25);
+  --ink: #113330;
+  --accent: #2f9484;
+  --accent-foreground: #ffffff;
+  --surface: #ffffff;
+  --surface-foreground: #113330;
+  --surface-dark: #0e2a26;
+  --surface-dark-foreground: #e3f5f1;
 }

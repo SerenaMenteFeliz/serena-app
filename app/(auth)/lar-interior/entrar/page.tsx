@@ -5,10 +5,12 @@ import { PortalArch } from "@/components/PortalArch";
 // aponta pra cá — primeira impressão já bate com o que a pessoa comprou.
 export default function EntrarLarInteriorPage() {
   return (
-    <main className="theme-lar-interior portal-bg flex flex-col items-center justify-center gap-6 p-6">
-      <PortalArch width={160} height={200} />
-      <h1 className="text-2xl font-semibold -mt-16">Lar Interior</h1>
-      <p className="opacity-80">Desafio de 7 Dias</p>
+    <main className="theme-lar-interior portal-bg flex min-h-screen flex-col items-center justify-center gap-8 p-6" style={{ color: "var(--ink)" }}>
+      <PortalArch width={150} height={190} />
+      <div className="text-center">
+        <h1 className="font-display text-2xl">Lar Interior</h1>
+        <p className="mt-1 text-sm italic opacity-60">Desafio de 7 Dias</p>
+      </div>
       <LoginForm produto="Lar Interior" />
     </main>
   );

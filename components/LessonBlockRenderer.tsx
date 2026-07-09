@@ -5,7 +5,7 @@ export function LessonBlockRenderer({ block }: { block: LessonBlock }) {
   switch (block.block_type) {
     case "text":
       return (
-        <div className="prose prose-invert max-w-none leading-relaxed">
+        <div className="surface-card reading-content px-6 py-6">
           <ReactMarkdown>{block.content.markdown ?? ""}</ReactMarkdown>
         </div>
       );

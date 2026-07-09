@@ -31,7 +31,7 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
       ]}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <h1 className="text-2xl font-semibold">{lesson.title}</h1>
+        <h1 className="font-display text-2xl">{lesson.title}</h1>
         {lesson.blocks.map((block) => (
           <LessonBlockRenderer key={block.id} block={block} />
         ))}
