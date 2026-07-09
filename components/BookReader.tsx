@@ -23,10 +23,13 @@ export function BookReader({
   bodyMd,
   prevHref,
   nextHref,
+  endHref,
 }: {
   bodyMd: string;
   prevHref: string | null;
   nextHref: string | null;
+  /* pra onde "concluir livro" leva ao passar da última página do último capítulo */
+  endHref?: string;
 }) {
   const router = useRouter();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -71,6 +74,7 @@ export function BookReader({
     }
     if (next > totalPages - 1) {
       if (nextHref) router.push(nextHref);
+      else if (endHref) router.push(endHref);
       return;
     }
     setPageIndex(next);
@@ -111,6 +115,11 @@ export function BookReader({
   const baseOffset = -pageIndex * pageWidth;
   const offset = dragX !== null ? baseOffset + dragX : baseOffset;
 
+  const isLastPage = pageIndex >= totalPages - 1;
+  const nextLabel = !isLastPage ? "próxima" : nextHref ? "concluir capítulo" : "concluir livro";
+  const prevDisabled = pageIndex === 0 && !prevHref;
+  const nextDisabled = isLastPage && !nextHref && !endHref;
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center gap-3">
       <div
@@ -131,7 +140,7 @@ export function BookReader({
         <div className="pointer-events-none absolute overflow-hidden" style={{ inset: "1.75rem 1.5rem" }}>
           <div
             ref={columnsRef}
-            className="reading-content book-page-columns h-full"
+            className="reading-content book-page-columns book-drop-cap h-full"
             style={{
               transform: `translateX(${offset}px)`,
               transition: dragX === null ? "transform 0.3s ease" : "none",
@@ -143,9 +152,31 @@ export function BookReader({
         </div>
       </div>
 
-      <p className="text-xs opacity-50">
-        página {pageIndex + 1} de {totalPages}
-      </p>
+      {/* controles explícitos — o arrasto continua funcionando, mas a virada
+          de página não pode depender de gesto que ninguém anunciou */}
+      <div className="font-veil-sans flex w-full items-center justify-between px-1 text-xs">
+        <button
+          type="button"
+          onClick={() => goToPage(pageIndex - 1)}
+          disabled={prevDisabled}
+          className={prevDisabled ? "cursor-default opacity-25" : "opacity-70 transition-opacity hover:opacity-100"}
+        >
+          ‹ anterior
+        </button>
+        <span className="text-[11px] opacity-50">
+          página {pageIndex + 1} de {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={() => goToPage(pageIndex + 1)}
+          disabled={nextDisabled}
+          className={nextDisabled ? "cursor-default opacity-25" : "font-bold"}
+          style={nextDisabled ? undefined : { color: "var(--accent)" }}
+        >
+          {nextLabel} ›
+        </button>
+      </div>
+      <p className="font-veil-sans text-[10px] opacity-40">arraste a página ou toque nas laterais</p>
     </div>
   );
 }

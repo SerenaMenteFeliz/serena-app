@@ -390,6 +390,15 @@ body {
   color: var(--gold, var(--accent));
 }
 
+/* No Cálice a página do livro vira vidro — o véu atravessa o papel. */
+.theme-metodo-calice .book-page-frame {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 20px 40px -20px var(--shadow-tint);
+}
+
 /* Card de contraste no Cálice ganha o gradiente roxo do véu (nos outros
    temas continua o sólido de --surface-dark). */
 .theme-metodo-calice .surface-card-dark {

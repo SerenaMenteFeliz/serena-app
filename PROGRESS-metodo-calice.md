@@ -36,6 +36,11 @@
   (leva pro próximo capítulo), fileira de categorias, card "Sua prática de
   hoje" (próxima aula destravada) e "Pensamento do dia" (rodízio diário em
   `lib/calice-daily.ts`, relógio de Brasília).
+- **Commit 3** — livro: lista com dots de status (lido dourado / atual lilás
+  em negrito) + card escuro "Marcador de página"; leitor com header próprio
+  (voltar + Capítulo N), título serif itálico fixo fora da página, página de
+  vidro, capitular dourada e controles explícitos anterior/próxima (o arrasto
+  continua, mas deixou de ser o único caminho — fix de affordance).
 
 ## Pendências que dependem do Yan
 
