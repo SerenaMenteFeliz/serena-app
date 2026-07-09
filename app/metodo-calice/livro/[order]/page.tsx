@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 import { requireProductAccess } from "@/lib/access";
 import { getChapter, getChapters, saveBookProgress, evaluateCompletion } from "@/lib/calice";
 import { AppShell } from "@/components/AppShell";
+import { BookReader } from "@/components/BookReader";
 
 export default async function CapituloPage({ params }: { params: Promise<{ order: string }> }) {
   const { order } = await params;
@@ -32,30 +31,14 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
         { href: "/metodo-calice/aulas", label: "Aulas" },
       ]}
     >
-      <article className="surface-card mx-auto max-w-2xl px-6 py-8">
-        <p className="mb-1 text-sm opacity-60">Capítulo {chapter.order_index}</p>
-        <h1 className="font-display mb-6 text-2xl">{chapter.title}</h1>
-        <div className="reading-content">
-          <ReactMarkdown>{chapter.body_md}</ReactMarkdown>
-        </div>
-      </article>
-
-      <div className="mx-auto mt-6 flex max-w-2xl justify-between text-sm" style={{ color: "var(--accent)" }}>
-        {anterior ? (
-          <Link href={`/metodo-calice/livro/${anterior.order_index}`} className="hover:underline">
-            ← {anterior.title}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {proximo ? (
-          <Link href={`/metodo-calice/livro/${proximo.order_index}`} className="hover:underline">
-            {proximo.title} →
-          </Link>
-        ) : (
-          <span className="opacity-60">Fim do livro</span>
-        )}
-      </div>
+      <p className="mx-auto mb-3 max-w-2xl text-center text-sm opacity-60">
+        Capítulo {chapter.order_index} · {chapter.title}
+      </p>
+      <BookReader
+        bodyMd={chapter.body_md}
+        prevHref={anterior ? `/metodo-calice/livro/${anterior.order_index}` : null}
+        nextHref={proximo ? `/metodo-calice/livro/${proximo.order_index}` : null}
+      />
     </AppShell>
   );
 }

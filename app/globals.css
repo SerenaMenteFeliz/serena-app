@@ -91,6 +91,19 @@ body {
   50% { opacity: 0.9; transform: scale(1.04); }
 }
 
+/* Quadro de leitura paginada (BookReader) — página de livro com altura
+   máxima; o texto flui em colunas do tamanho do quadro (uma coluna =
+   uma página) e o componente translada a coluna visível ao arrastar. */
+.book-page-frame {
+  background: var(--surface);
+  box-shadow: 0 8px 40px rgba(20, 10, 40, 0.12);
+}
+
+.book-page-columns {
+  column-gap: 0;
+  column-fill: auto;
+}
+
 /* Capa do livro — lombada (sombra à esquerda) e borda de páginas (listras
    claras à direita), pra parecer um objeto físico fechado, mesmo sendo um
    objeto rico/escuro dentro de uma cena clara. */
@@ -175,7 +188,13 @@ body {
   color: color-mix(in srgb, var(--accent) 60%, var(--ink));
 }
 
-.reading-content ul, .reading-content ol {
+.reading-content ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+
+.reading-content ol {
+  list-style: decimal;
   padding-left: 1.4em;
 }
 
