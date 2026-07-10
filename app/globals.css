@@ -222,23 +222,44 @@ body {
 
 /* Tema por produto — casca (nav, layout, componentes) é compartilhada, só a
    paleta muda. Fundo claro em todos, variando o tom (lilás/dourado/teal). */
+/* Paleta da direção "Amanhecer" (10/07): o portal antigo evoluiu pra dentro
+   da linguagem de vidro — véu creme→pêssego-dourado (golden hour de Ubatuba),
+   sol como objeto-símbolo, mar no horizonte. Terracota/salvia/céu são acentos
+   secundários (estados, ícones). */
 .theme-lar-interior {
   --bg: #fbf6ec;
   --bg-glow: rgba(196, 155, 82, 0.25);
-  --ink: #3a2c14;
+  --ink: #42331b;
   --accent: #b9862f;
   --accent-foreground: #ffffff;
   --surface: #ffffff;
-  --surface-foreground: #3a2c14;
+  --surface-foreground: #42331b;
   --surface-dark: #2a1f10;
   --surface-dark-foreground: #f5ead2;
-  --veil-0: #fdfcf9;
-  --veil-1: #fbf6ec;
-  --veil-2: #f6ecd8;
+  --veil-0: #fdfbf6;
+  --veil-1: #fbf4e6;
+  --veil-2: #f8e9d2;
   --glass: rgba(255, 255, 255, 0.62);
   --glass-strong: rgba(255, 255, 255, 0.82);
   --glass-border: rgba(255, 255, 255, 0.9);
   --shadow-tint: rgba(196, 155, 82, 0.35);
+  /* acentos secundários (ícones de categoria, estados) */
+  --sun: #d9973e;
+  --sun-soft: #ecc27c;
+  --terracotta: #c97e5a;
+  --sage: #a9bfa3;
+  --sky: #a9c4cf;
+  /* tipografia própria do produto (carregada em app/lar-interior/layout.tsx) */
+  --font-display: var(--font-lar-serif), Georgia, serif;
+  font-family: var(--font-lar-ui), var(--font-geist-sans), sans-serif;
+}
+
+/* Card de contraste no Lar ganha o gradiente âmbar do entardecer (nos outros
+   temas continua o sólido de --surface-dark). */
+.theme-lar-interior .surface-card-dark {
+  background: linear-gradient(160deg, rgba(42, 31, 16, 0.94), rgba(88, 60, 27, 0.88));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Paleta da direção "Santuário + Véu" (09/07): creme-quente → lilás claro,
