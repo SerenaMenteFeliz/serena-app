@@ -294,6 +294,9 @@ body {
   font-family: var(--font-calice-ui), var(--font-geist-sans), sans-serif;
 }
 
+/* Paleta do guarda-chuva "Clareira" (10/07): a marca-mãe é água/mata serena —
+   teal calmo, véu quase-branco esverdeado. É a moldura neutra de onde se
+   avistam os mundos dos produtos (os portais). */
 .theme-hub {
   --bg: #eff8f6;
   --bg-glow: rgba(94, 182, 166, 0.25);
@@ -311,6 +314,9 @@ body {
   --glass-strong: rgba(255, 255, 255, 0.82);
   --glass-border: rgba(255, 255, 255, 0.9);
   --shadow-tint: rgba(94, 182, 166, 0.3);
+  /* tipografia do guarda-chuva (carregada nos layouts de hub/perfil) */
+  --font-display: var(--font-serena-serif), Georgia, serif;
+  font-family: var(--font-serena-ui), var(--font-geist-sans), sans-serif;
 }
 
 /* ── Linguagem "Véu" (vidro fosco sobre véu tonal) ─────────────────────────
