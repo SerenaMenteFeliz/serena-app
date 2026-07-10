@@ -56,10 +56,10 @@ export default async function ComecarPage({
                 type="submit"
                 className="glass-card group w-full cursor-pointer px-5 py-4 text-left transition-transform active:scale-[0.985]"
               >
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-xl">{op.titulo}</span>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-display whitespace-nowrap text-xl">{op.titulo}</span>
                   <span
-                    className="text-[10px] font-bold uppercase tracking-[0.1em]"
+                    className="text-right text-[10px] font-bold uppercase tracking-[0.1em]"
                     style={{ color: "var(--accent)" }}
                   >
                     {op.pra}

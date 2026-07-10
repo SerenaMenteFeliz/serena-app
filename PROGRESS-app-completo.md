@@ -58,7 +58,15 @@
 6. [x] Transversais: perfil multi-produto, logins (genérico + lar), sem-acesso,
        404, loading states — commit
 7. [x] PWA: manifest + ícones + theme-color — commit (junto com 6)
-8. [ ] Verificação: build limpo + screenshots Playwright 390×844 de tudo — commit
+8. [x] Verificação: build limpo + screenshots Playwright 390×844 de tudo — commit
+
+**STATUS: CONCLUÍDO (10/07/2026).** Build de produção limpo (23 rotas),
+`scripts/verify-app.mjs` fotografou as 18 telas com usuário de teste logado
+de ponta a ponta (fluxo real: login → hub → onboarding do Lar → escolher
+ritmo → viver a sessão 1 → estados pós-conclusão → regressão do Cálice).
+Achados corrigidos na própria verificação: quebra de linha no card "Em 14
+dias" do onboarding; dev server da sessão anterior com worker corrompido
+(reiniciado). Screenshots em `screenshots-app/`.
 
 ## Feito
 
