@@ -29,8 +29,9 @@ export function HashSessionFallback() {
   }, [router]);
 
   return (
-    <main className="theme-hub portal-bg flex min-h-screen items-center justify-center">
-      <p>Entrando...</p>
+    <main className="theme-hub veil-bg flex min-h-screen flex-col items-center justify-center gap-3" style={{ color: "var(--ink)" }}>
+      <span className="skeleton h-[52px] w-[52px] rounded-full" aria-hidden />
+      <p className="text-sm opacity-60">Entrando…</p>
     </main>
   );
 }

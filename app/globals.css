@@ -16,80 +16,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-app-ui), var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Linguagem visual compartilhada: "portal" — fundo claro e etéreo (lilás/
-   dourado/teal suave conforme o produto), nunca branco puro nem escuro
-   pesado. Brilho radial + pontinhos de luz bem discretos dão o clima
-   místico sem perder legibilidade. Cada produto muda só a paleta, ver
-   `.theme-*` abaixo. Aplicado num wrapper div, ver components/AppShell.tsx. */
-.portal-bg {
-  position: relative;
-  min-height: 100vh;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 900px 500px at 50% -8%, var(--bg-glow) 0%, transparent 68%),
-    radial-gradient(2px 2px at 12% 18%, var(--accent), transparent),
-    radial-gradient(2px 2px at 82% 26%, var(--accent), transparent),
-    radial-gradient(2px 2px at 42% 65%, var(--accent), transparent),
-    radial-gradient(2px 2px at 68% 82%, var(--accent), transparent),
-    radial-gradient(2px 2px at 22% 50%, var(--accent), transparent);
-  background-repeat: no-repeat, repeat, repeat, repeat, repeat, repeat;
-  background-size: 100% 100%, 240px 240px, 280px 280px, 220px 220px, 260px 260px, 200px 200px;
-  color: var(--ink);
-}
-
-/* pontinhos de luz — bem discretos, só textura, não decoração chamativa */
-.portal-bg { background-blend-mode: normal, luminosity, luminosity, luminosity, luminosity, luminosity; }
-
-/* Moldura em arco — janela pra uma cena luminosa dentro (livro, ícone de
-   sessão), como uma porta pra outra dimensão. Leve e clara, com o brilho
-   "respirando" bem devagar por dentro — não domina a tela, emoldura. */
-.portal-arch {
-  position: relative;
-  border-radius: 50% 50% 8px 8px / 38% 38% 8px 8px;
-  background: radial-gradient(ellipse at 50% 30%, var(--bg-glow) 0%, transparent 70%);
-  box-shadow:
-    0 0 50px 6px var(--bg-glow),
-    inset 0 0 30px rgba(255, 255, 255, 0.5);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  animation: portal-breathe 6s ease-in-out infinite;
-}
-
-@keyframes portal-breathe {
-  0%, 100% { box-shadow: 0 0 50px 6px var(--bg-glow), inset 0 0 30px rgba(255, 255, 255, 0.5); }
-  50% { box-shadow: 0 0 72px 12px var(--bg-glow), inset 0 0 40px rgba(255, 255, 255, 0.65); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .portal-arch, .glow-orb-ring { animation: none; }
-}
-
-/* Glow circular respirando — usado sozinho (sem arco) em momentos de
-   sessão/prática (ex: player de meditação): ondas concêntricas de luz. */
-.glow-orb {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.glow-orb-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background: radial-gradient(circle, var(--bg-glow) 0%, transparent 70%);
-  animation: glow-pulse 4s ease-in-out infinite;
-}
-
-.glow-orb-ring:nth-child(2) { inset: 12%; animation-delay: -1.3s; }
-.glow-orb-ring:nth-child(3) { inset: 26%; animation-delay: -2.6s; }
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.96); }
-  50% { opacity: 0.9; transform: scale(1.04); }
-}
+/* A linguagem visual do app inteiro é o "véu" (vidro fosco sobre véu tonal,
+   ver bloco Véu abaixo) — a linguagem anterior, "portal" (fundo claro + glow
+   respirando), foi aposentada em 10/07/2026 quando hub e Lar Interior
+   migraram pro vidro. Cada produto muda paleta/tipografia via `.theme-*`. */
 
 /* Quadro de leitura paginada (BookReader) — página de livro com altura
    máxima; o texto flui em colunas do tamanho do quadro (uma coluna =
@@ -314,9 +247,7 @@ body {
   --glass-strong: rgba(255, 255, 255, 0.82);
   --glass-border: rgba(255, 255, 255, 0.9);
   --shadow-tint: rgba(94, 182, 166, 0.3);
-  /* tipografia do guarda-chuva (carregada nos layouts de hub/perfil) */
-  --font-display: var(--font-serena-serif), Georgia, serif;
-  font-family: var(--font-serena-ui), var(--font-geist-sans), sans-serif;
+  /* tipografia do guarda-chuva: Fraunces + Manrope, carregadas no root layout */
 }
 
 /* ── Linguagem "Véu" (vidro fosco sobre véu tonal) ─────────────────────────
@@ -437,4 +368,21 @@ body {
 /* Labels/microcopy do Cálice usam a Jost. */
 .font-veil-sans {
   font-family: var(--font-calice-sans), var(--font-geist-sans), sans-serif;
+}
+
+/* Esqueleto de carregamento — placeholder de vidro pulsando devagar, usado
+   nos loading.tsx das seções pra troca de rota não dar tela branca. */
+.skeleton {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  animation: skeleton-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
 }

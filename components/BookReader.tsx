@@ -54,9 +54,11 @@ export function BookReader({
   }
 
   useLayoutEffect(() => {
+    // medir o DOM antes do paint é exatamente o caso de uso do
+    // useLayoutEffect — o setState síncrono aqui é intencional
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPageIndex(0);
     measure();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bodyMd]);
 
   useEffect(() => {

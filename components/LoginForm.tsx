@@ -52,10 +52,10 @@ export function LoginForm({ produto }: { produto?: string }) {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-lg px-4 py-2 font-medium disabled:opacity-60"
+        className="cursor-pointer rounded-full px-4 py-2.5 font-semibold transition-transform active:scale-[0.98] disabled:opacity-60"
         style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
       >
-        {status === "loading" ? "Enviando..." : "Receber link de acesso"}
+        {status === "loading" ? "Enviando…" : "Receber link de acesso"}
       </button>
       {status === "erro" && (
         <p role="alert" className="text-sm" style={{ color: "#b91c1c" }}>

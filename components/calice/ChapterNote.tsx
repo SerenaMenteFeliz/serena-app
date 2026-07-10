@@ -6,11 +6,9 @@ import { PenIcon } from "./icons";
 // Anotação do capítulo — fica recolhida abaixo do leitor (anotar vem depois
 // de ler) e expande num painel de vidro quente. Corpo vazio apaga a nota.
 export function ChapterNote({
-  chapterOrder,
   initialBody,
   action,
 }: {
-  chapterOrder: number;
   initialBody: string;
   action: (formData: FormData) => Promise<void>;
 }) {

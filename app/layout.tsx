@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,17 +12,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Serifada quente pra títulos/momentos emocionais — par com a Geist (sans)
-// pro corpo/UI. Ver pesquisa de tipografia em Método Cálice - Visão Geral.
+// Tipografia do guarda-chuva: Fraunces (serif acolhedora) nos títulos e
+// Manrope como base de UI do app inteiro — os produtos trocam a serif
+// (Cormorant no Cálice, Lora no Lar) via `.theme-*`, a UI é uma só.
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
   style: ["normal", "italic"],
 });
 
+const manrope = Manrope({
+  variable: "--font-app-ui",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Serena Mente Feliz",
-  description: "App guarda-chuva Serena Mente Feliz",
+  title: {
+    default: "Serena Mente Feliz",
+    template: "%s · Serena Mente Feliz",
+  },
+  description:
+    "Um lar pra sua mente — meditação com o Lar Interior e reprogramação mental com o Método Cálice, no seu tempo.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Serena",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#eff8f6",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -32,8 +55,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      lang="pt-BR"
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

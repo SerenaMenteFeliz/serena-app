@@ -48,21 +48,50 @@
 
 ## Plano
 
-1. [ ] Seed do Lar Interior (scripts/seed-lar-interior.mjs, rodado) +
+1. [x] Seed do Lar Interior (scripts/seed-lar-interior.mjs, rodado) +
        `lib/lar.ts` (sessões, ritmo event-sourced, desbloqueio diário) — commit
-2. [ ] Base visual Lar: paleta amanhecer + fontes + LarShell/LarNav/LarSun +
+2. [x] Base visual Lar: paleta amanhecer + fontes + LarShell/LarNav/LarSun +
        onboarding `/lar-interior/comecar` + home nova — commit
-3. [ ] Sessões: lista por tema (estados claros) + player com conclusão — commit
-4. [ ] Bônus: tela + mecanismo da Carta do Dia 14 — commit
-5. [ ] Hub Serena Mente Feliz: dois portais com progresso real + fontes — commit
-6. [ ] Transversais: perfil multi-produto, logins (genérico + lar), sem-acesso,
+3. [x] Sessões: lista por tema (estados claros) + player com conclusão — commit
+4. [x] Bônus: tela + mecanismo da Carta do Dia 14 — commit
+5. [x] Hub Serena Mente Feliz: dois portais com progresso real + fontes — commit
+6. [x] Transversais: perfil multi-produto, logins (genérico + lar), sem-acesso,
        404, loading states — commit
-7. [ ] PWA: manifest + ícones + theme-color — commit
+7. [x] PWA: manifest + ícones + theme-color — commit (junto com 6)
 8. [ ] Verificação: build limpo + screenshots Playwright 390×844 de tudo — commit
 
 ## Feito
 
-- (nada ainda — plano commitado primeiro)
+- **Seed Lar Interior**: 14 lessons reais no banco (roteiros da Liz do vault,
+  transformados programaticamente: cada "Momento" virou um bloco de texto;
+  seção "Objetivos" e metadados de produção removidos). Idempotente (re-rodar
+  limpa e reinsere). Durações reais baked em `lib/lar.ts` (const MINUTOS).
+- **lib/lar.ts**: ritmo 7/14 lido/escrito como evento `pace_chosen` em
+  product_events (zero migration); desbloqueio sequencial + trava diária
+  calculada do completed_at (fuso SP); intenção do dia em rodízio.
+  `lib/actions/lar.ts` valida a cota no servidor (não dá pra maratonar por URL).
+- **Seção Lar Interior completa**: /comecar (onboarding de ritmo, trocável via
+  ?trocar=1), home (hero sol-no-arco, rastreador de dias, sessão de hoje,
+  intenção do dia), /sessoes (agrupada nos 7 temas, estados
+  vivida/hoje/amanhã/bloqueada), /sessoes/[order] (player com nota "em
+  gravação" enquanto não há bloco de vídeo, CTA de conclusão), /bonus
+  (práticas, bônus em gravação, Carta do Dia 14 só aparece com jornada
+  completa E texto em lib/lar-carta.ts preenchido). Identidade "Amanhecer":
+  Lora + Manrope, sol sobre o mar (LarSun), paleta creme→pêssego-dourado.
+- **Hub "Clareira"**: dois portais lado a lado como portas em arco — cada
+  janela renderiza o mundo do produto de verdade (wrapper .theme-* faz os
+  tokens de vidro resolverem pra paleta dele; fontes dos 2 produtos carregadas
+  só na rota do hub). Estado bloqueado com cadeado "em breve pra você".
+  Progresso real por produto em "Seus caminhos" + card escuro da marca.
+- **Transversais**: perfil multi-produto (painel por produto com stats reais:
+  dia da jornada/sessões/ritmo + capítulos/aulas/notas), logins genérico e do
+  Lar no véu novo, sem-acesso e 404 serenos, loading.tsx com esqueleto de
+  vidro nas 4 áreas, LoginForm com botão pill. `lang="pt-BR"` (era "en"!),
+  metadata real + PWA (manifest.ts + ícones gerados por scripts/make-icons.mjs).
+- **Aposentadoria da era "portal"**: AppShell/PortalArch deletados, CSS
+  portal-bg/portal-arch/glow-orb removido, HashSessionFallback migrado pro
+  véu. Manrope virou a UI base do app inteiro no root layout (Fraunces segue
+  como serif do guarda-chuva); fix de lint no BookReader/ChapterNote.
 
 ## Pendências que dependem do Yan/Liz/Ge
 

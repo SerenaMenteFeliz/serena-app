@@ -58,11 +58,7 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
       />
 
       {notasOn && (
-        <ChapterNote
-          chapterOrder={orderNum}
-          initialBody={nota?.body ?? ""}
-          action={guardarNota.bind(null, orderNum)}
-        />
+        <ChapterNote initialBody={nota?.body ?? ""} action={guardarNota.bind(null, orderNum)} />
       )}
     </CaliceShell>
   );
