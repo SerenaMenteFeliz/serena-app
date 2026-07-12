@@ -2,9 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireProductAccess, getContactFirstName } from "@/lib/access";
 import { getPace, getLarSessions, getIntencaoDoDia, getGreetingLar, tituloSessao } from "@/lib/lar";
+import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { LarShell } from "@/components/lar/LarShell";
 import { LarSun } from "@/components/lar/LarSun";
-import { LeafIcon, GiftIcon, UserIcon, ChevronRightIcon, CheckIcon, MoonIcon } from "@/components/icons";
+import { CheckinDia } from "@/components/lar/CheckinDia";
+import { Track } from "@/components/analytics/Track";
+import { LeafIcon, GiftIcon, UserIcon, ChevronRightIcon, CheckIcon, MoonIcon, SparkleIcon } from "@/components/icons";
 
 export default async function LarInteriorPage() {
   const { contactId } = await requireProductAccess("lar_interior");
@@ -12,10 +15,13 @@ export default async function LarInteriorPage() {
   const pace = await getPace(contactId);
   if (!pace) redirect("/lar-interior/comecar");
 
-  const [{ sessions, concluidas, diaAtual, totalDias }, firstName] = await Promise.all([
+  const [{ sessions, concluidas, diaAtual, totalDias }, constancia, firstName] = await Promise.all([
     getLarSessions(contactId, pace),
+    getConstancia(contactId),
     getContactFirstName(contactId),
   ]);
+  const frase = fraseConstancia(constancia);
+  const diaSP = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
   const sessaoDaVez = sessions.find((s) => s.status === "hoje");
   const sessaoAmanha = sessions.find((s) => s.status === "amanha");
@@ -52,6 +58,7 @@ export default async function LarInteriorPage() {
 
   return (
     <LarShell>
+      <Track event="login" contactId={contactId} oncePerSession />
       {/* saudação */}
       <header className="flex items-center justify-between">
         <div>
@@ -111,7 +118,23 @@ export default async function LarInteriorPage() {
             />
           ))}
         </div>
+        {frase && (
+          <p className="mt-2.5 text-center text-[11px] font-semibold" style={{ color: "var(--accent)" }}>
+            ✦ {frase}
+          </p>
+        )}
       </div>
+
+      {/* marco da jornada completa — porta pro card de compartilhar */}
+      {completo && (
+        <Link
+          href="/lar-interior/celebracao"
+          className="glass-card glass-card-strong mt-4 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-bold"
+          style={{ color: "var(--accent)" }}
+        >
+          <SparkleIcon size={16} /> Seu marco dos 7 dias — veja e compartilhe
+        </Link>
+      )}
 
       {/* categorias */}
       <div className="mt-5 flex justify-center gap-9">
@@ -160,17 +183,22 @@ export default async function LarInteriorPage() {
         )}
       </div>
 
-      {/* intenção do dia */}
-      <div className="surface-card-dark relative mt-4 overflow-hidden px-[18px] py-4">
-        <div
-          className="absolute -right-2.5 -top-2.5 h-[60px] w-[60px] rounded-full opacity-50"
-          style={{ background: "radial-gradient(circle, var(--sun-soft), transparent 70%)" }}
-        />
-        <p className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--sun-soft)" }}>
-          Intenção do dia
-        </p>
-        <p className="mt-1.5 font-display text-base italic leading-snug">“{getIntencaoDoDia()}”</p>
-      </div>
+      {/* intenção do dia com check-in — "como você chega hoje?" */}
+      <CheckinDia dia={diaSP} fallbackIntencao={getIntencaoDoDia()} />
+
+      {/* SOS Ansiedade — flutuante, fora do menu: ansiedade não espera
+          a pessoa navegar até o lugar certo */}
+      <Link
+        href="/lar-interior/bonus#sos"
+        className="fixed right-4 z-50 flex items-center gap-2 rounded-full py-2.5 pl-3.5 pr-4 text-xs font-bold shadow-lg transition-transform active:scale-95"
+        style={{
+          bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))",
+          background: "color-mix(in srgb, var(--terracotta) 92%, black)",
+          color: "#fff7ef",
+        }}
+      >
+        <SparkleIcon size={14} /> SOS Ansiedade
+      </Link>
     </LarShell>
   );
 }

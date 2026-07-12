@@ -3,19 +3,23 @@ import { requireProductAccess, getContactFirstName } from "@/lib/access";
 import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
 import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
+import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
-import { BookIcon, PlayIcon, PenIcon, UserIcon, ChevronRightIcon, CheckIcon } from "@/components/calice/icons";
+import { Track } from "@/components/analytics/Track";
+import { BookIcon, PlayIcon, PenIcon, UserIcon, ChevronRightIcon, CheckIcon, SparkleIcon } from "@/components/calice/icons";
 
 export default async function MetodoCalicePage() {
   const { contactId } = await requireProductAccess("metodo_calice");
-  const [chapters, progress, lessons, firstName, notasOn] = await Promise.all([
+  const [chapters, progress, lessons, constancia, firstName, notasOn] = await Promise.all([
     getChapters("metodo_calice"),
     getBookProgress(contactId, "metodo_calice"),
     getLessonsWithProgress(contactId, "metodo_calice"),
+    getConstancia(contactId),
     getContactFirstName(contactId),
     notesFeatureEnabled(),
   ]);
+  const frase = fraseConstancia(constancia);
 
   // Pra onde o toque no livro leva: próximo capítulo não lido, ou a lista
   // quando terminou (reler é escolha, não loop automático).
@@ -51,8 +55,11 @@ export default async function MetodoCalicePage() {
     { href: "/perfil", label: "Perfil", border: "var(--rose)", icon: <UserIcon /> },
   ];
 
+  const jornadaCompleta = progress.completed && lessons.length > 0 && !nextLesson && lessonsDone === lessons.length;
+
   return (
     <CaliceShell>
+      <Track event="login" contactId={contactId} oncePerSession />
       {/* saudação */}
       <header className="flex items-center justify-between">
         <div>
@@ -89,6 +96,18 @@ export default async function MetodoCalicePage() {
       </Link>
       <p className="mt-3 text-center font-veil-sans text-xs opacity-60">{continueLabel}</p>
 
+      {/* constância — acompanhamento gentil, nunca cobrança (sem "0 dias") */}
+      {frase && (
+        <p className="mt-2 text-center">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-veil-sans text-[11px] font-semibold"
+            style={{ background: "color-mix(in srgb, var(--gold) 14%, transparent)", color: "var(--accent)" }}
+          >
+            <SparkleIcon size={12} /> {frase}
+          </span>
+        </p>
+      )}
+
       {/* categorias */}
       <div className="mt-5 flex justify-between px-2">
         {categorias.map((cat) => (
@@ -115,12 +134,23 @@ export default async function MetodoCalicePage() {
               <ChevronRightIcon className="shrink-0 opacity-50" />
             </Link>
           ) : (
-            <div className="glass-card flex items-center gap-3 px-4 py-3.5">
-              <CheckIcon className="shrink-0" />
-              <p className="font-veil-sans text-sm font-medium">
-                As {lessonsDone} práticas concluídas — jornada completa
-              </p>
-            </div>
+            <>
+              <div className="glass-card flex items-center gap-3 px-4 py-3.5">
+                <CheckIcon className="shrink-0" />
+                <p className="font-veil-sans text-sm font-medium">
+                  As {lessonsDone} práticas concluídas — jornada completa
+                </p>
+              </div>
+              {jornadaCompleta && (
+                <Link
+                  href="/metodo-calice/celebracao"
+                  className="glass-card glass-card-strong mt-2 flex items-center justify-center gap-2 px-4 py-3.5 font-veil-sans text-sm font-bold"
+                  style={{ color: "var(--accent)" }}
+                >
+                  <SparkleIcon size={16} /> Seu marco do Cálice — veja e compartilhe
+                </Link>
+              )}
+            </>
           )}
         </div>
       )}

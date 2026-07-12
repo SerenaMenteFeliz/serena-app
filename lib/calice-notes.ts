@@ -1,6 +1,12 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
+// A tabela book_notes nasceu pro Cálice mas a chave é (contact_id, product,
+// chapter_order) com product_slug genérico — o diário do Lar Interior (uma
+// reflexão por sessão) reusa a mesma tabela com product='lar_interior' e
+// chapter_order = order_index da sessão. Zero migration nova.
+export type NotesProduct = "metodo_calice" | "lar_interior";
+
 export type BookNote = {
   id: string;
   chapter_order: number;
@@ -23,7 +29,7 @@ export async function notesFeatureEnabled(): Promise<boolean> {
   return notesAvailable;
 }
 
-export async function getNotes(contactId: string, product: "metodo_calice"): Promise<BookNote[]> {
+export async function getNotes(contactId: string, product: NotesProduct): Promise<BookNote[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("book_notes")
@@ -36,7 +42,7 @@ export async function getNotes(contactId: string, product: "metodo_calice"): Pro
 
 export async function getNote(
   contactId: string,
-  product: "metodo_calice",
+  product: NotesProduct,
   chapterOrder: number
 ): Promise<BookNote | null> {
   const supabase = await createClient();
@@ -54,7 +60,7 @@ export async function getNote(
 // separado dentro do leitor (a página Minhas anotações tem o dela).
 export async function saveNote(
   contactId: string,
-  product: "metodo_calice",
+  product: NotesProduct,
   chapterOrder: number,
   body: string
 ) {
@@ -78,7 +84,7 @@ export async function saveNote(
   );
 }
 
-export async function deleteNote(contactId: string, product: "metodo_calice", chapterOrder: number) {
+export async function deleteNote(contactId: string, product: NotesProduct, chapterOrder: number) {
   const supabase = await createClient();
   await supabase
     .from("book_notes")

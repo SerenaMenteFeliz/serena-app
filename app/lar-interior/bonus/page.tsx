@@ -55,8 +55,8 @@ export default async function BonusPage() {
           </span>
         </div>
 
-        {/* SOS ansiedade */}
-        <div className="glass-card flex items-center gap-3.5 px-4 py-4">
+        {/* SOS ansiedade — âncora do atalho flutuante da home */}
+        <div id="sos" className="glass-card flex scroll-mt-6 items-center gap-3.5 px-4 py-4">
           <span className="glass-orb shrink-0" style={{ borderColor: "var(--terracotta)" }}>
             <SparkleIcon />
           </span>

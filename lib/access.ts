@@ -84,6 +84,27 @@ export async function getActiveProducts(contactId: string): Promise<ProductSlug[
   return (data ?? []).map((row) => row.product as ProductSlug);
 }
 
+// Produtos ativos que a pessoa já completou (product_access.completed_at
+// preenchido pelo evaluateCompletion). Leitura pura — alimenta o cross-sell
+// do hub: completou um mundo, o outro ganha destaque.
+export async function getCompletedProducts(contactId: string): Promise<ProductSlug[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("product_access")
+    .select("product")
+    .eq("contact_id", contactId)
+    .eq("status", "active")
+    .not("completed_at", "is", null);
+
+  if (error) {
+    console.error("getCompletedProducts falhou", error);
+    return [];
+  }
+
+  return (data ?? []).map((row) => row.product as ProductSlug);
+}
+
 // 0 produtos: sem acesso (não deveria acontecer pós-compra, mas é o fallback
 // seguro). 1 produto: cai direto na seção comprada. 2+: cai no hub.
 export function resolveEntryRoute(products: ProductSlug[]): string {

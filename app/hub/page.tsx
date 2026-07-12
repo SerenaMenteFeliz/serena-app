@@ -1,19 +1,34 @@
 import Link from "next/link";
-import { requireAuth, getActiveProducts, getContactFirstName, type ProductSlug } from "@/lib/access";
+import {
+  requireAuth,
+  getActiveProducts,
+  getCompletedProducts,
+  getContactFirstName,
+  type ProductSlug,
+} from "@/lib/access";
 import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
 import { getGreeting } from "@/lib/calice-daily";
 import { getPace, getLarSessions } from "@/lib/lar";
+import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { CaliceBook } from "@/components/calice/CaliceBook";
 import { LarSun } from "@/components/lar/LarSun";
+import { Track } from "@/components/analytics/Track";
 import { LockIcon, ChevronRightIcon, SparkleIcon } from "@/components/icons";
+
+const NOME_PRODUTO: Record<ProductSlug, string> = {
+  lar_interior: "Lar Interior",
+  metodo_calice: "Método Cálice",
+};
 
 // O hub Serena Mente Feliz: a clareira de onde se avistam os mundos. Cada
 // produto é um portal — a janela em arco mostra o mundo de dentro com a
 // paleta e a tipografia reais dele (o wrapper .theme-* resolve os tokens).
 export default async function HubPage() {
   const { contactId } = await requireAuth();
-  const [produtos, firstName] = await Promise.all([
+  const [produtos, completos, constancia, firstName] = await Promise.all([
     getActiveProducts(contactId),
+    getCompletedProducts(contactId),
+    getConstancia(contactId),
     getContactFirstName(contactId),
   ]);
 
@@ -88,8 +103,23 @@ export default async function HubPage() {
     },
   ];
 
+  // Cross-sell: completou um mundo → o outro ganha destaque. O sinal
+  // (completed_at) já era gravado pelo evaluateCompletion; aqui ele
+  // finalmente vira resposta visual. Sem escrita em product_access.
+  const crossSell = (() => {
+    for (const done of completos) {
+      const outro = (["lar_interior", "metodo_calice"] as ProductSlug[]).find((p) => p !== done);
+      if (!outro) continue;
+      return { done, outro, outroLiberado: produtos.includes(outro) };
+    }
+    return null;
+  })();
+
+  const frase = fraseConstancia(constancia);
+
   return (
     <div className="theme-hub veil-bg" style={{ color: "var(--ink)" }}>
+      <Track event="login" contactId={contactId} oncePerSession />
       <main className="mx-auto w-full max-w-md px-5 pb-16 pt-6">
         {/* saudação da marca-mãe */}
         <header className="flex items-center justify-between">
@@ -117,6 +147,19 @@ export default async function HubPage() {
         <p className="mt-5 text-[13px] leading-relaxed opacity-60">
           Cada produto é um mundo. Escolha por qual portal entrar hoje.
         </p>
+
+        {/* constância — acompanhamento gentil, nunca cobrança (sem "0 dias") */}
+        {frase && (
+          <p
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold"
+            style={{
+              background: "color-mix(in srgb, var(--accent) 10%, transparent)",
+              color: "var(--accent)",
+            }}
+          >
+            <SparkleIcon size={12} /> {frase}
+          </p>
+        )}
 
         {/* os dois portais, lado a lado como duas portas */}
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -169,6 +212,46 @@ export default async function HubPage() {
             );
           })}
         </div>
+
+        {/* cross-sell: um mundo completo abre a porta do outro */}
+        {crossSell && (
+          <>
+            <Track
+              event="cross_sell_viewed"
+              contactId={contactId}
+              props={{ completed: crossSell.done, suggested: crossSell.outro, owned: crossSell.outroLiberado }}
+            />
+            <div className="surface-card-dark relative mt-5 overflow-hidden px-[18px] py-4">
+              <div
+                className="absolute -right-2.5 -top-2.5 h-[60px] w-[60px] rounded-full opacity-40"
+                style={{ background: "radial-gradient(circle, #9ad8c9, transparent 70%)" }}
+              />
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "#9ad8c9" }}>
+                Você completou o {NOME_PRODUTO[crossSell.done]} ✦
+              </p>
+              {crossSell.outroLiberado ? (
+                <>
+                  <p className="font-display mt-1.5 text-base italic leading-snug">
+                    Que jornada. O {NOME_PRODUTO[crossSell.outro]} é um bom próximo passo — já está
+                    aberto pra você.
+                  </p>
+                  <Link
+                    href={crossSell.outro === "lar_interior" ? "/lar-interior" : "/metodo-calice"}
+                    className="mt-3 inline-block rounded-full px-4 py-2 text-xs font-bold"
+                    style={{ background: "#9ad8c9", color: "#0e2a26" }}
+                  >
+                    Entrar no {NOME_PRODUTO[crossSell.outro]} ›
+                  </Link>
+                </>
+              ) : (
+                <p className="font-display mt-1.5 text-base italic leading-snug">
+                  Que jornada. Quando o {NOME_PRODUTO[crossSell.outro]} abrir pra você, ele vai ser
+                  um lindo próximo passo.
+                </p>
+              )}
+            </div>
+          </>
+        )}
 
         {/* continue de onde parou */}
         {(caliceInfo || larInfo) && (

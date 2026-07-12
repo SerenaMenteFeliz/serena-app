@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServer } from "@/lib/analytics/server";
 
 export type LessonBlock = {
   id: string;
@@ -200,6 +201,8 @@ export async function evaluateCompletion(contactId: string, product: "metodo_cal
       .eq("contact_id", contactId)
       .eq("product", product);
     await logEvent(contactId, product, "product_completed", {});
+    // dispara exatamente 1x por pessoa/produto (só na transição do completed_at)
+    await captureServer(contactId, "product_completed", { product });
   }
 
   return true;

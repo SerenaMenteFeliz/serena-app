@@ -2,10 +2,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireProductAccess } from "@/lib/access";
 import { getPace, getLarSessions, getLarSession, tituloSessao } from "@/lib/lar";
-import { concluirSessao } from "@/lib/actions/lar";
+import { concluirSessao, guardarReflexao } from "@/lib/actions/lar";
+import { notesFeatureEnabled, getNote } from "@/lib/calice-notes";
 import { LarShell } from "@/components/lar/LarShell";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
-import { ChevronLeftIcon, CheckIcon, SunIcon } from "@/components/icons";
+import { SessionReflection } from "@/components/lar/SessionReflection";
+import { Track } from "@/components/analytics/Track";
+import { ChevronLeftIcon, CheckIcon, SunIcon, SparkleIcon } from "@/components/icons";
 
 export default async function SessaoPage({ params }: { params: Promise<{ order: string }> }) {
   const { order } = await params;
@@ -32,11 +35,23 @@ export default async function SessaoPage({ params }: { params: Promise<{ order: 
   const vivida = estado.status === "concluida";
   const proxima = sessions.find((s) => s.order_index === orderNum + 1);
   const temVideo = sessao.blocks.some((b) => b.block_type === "video");
+  const desafioCompleto = sessions.length > 0 && sessions.every((s) => s.status === "concluida");
+
+  // diário da sessão — mesma infra das notas do Cálice (gate da migration 0006)
+  const [reflexaoOn, reflexao] = vivida
+    ? await Promise.all([notesFeatureEnabled(), getNote(contactId, "lar_interior", orderNum)])
+    : [false, null];
 
   const concluirComArgs = concluirSessao.bind(null, sessao.id, orderNum);
+  const guardarComOrder = guardarReflexao.bind(null, orderNum);
 
   return (
     <LarShell nav={false}>
+      <Track
+        event="lar_session_started"
+        contactId={contactId}
+        props={{ order: orderNum, tema, ja_vivida: vivida }}
+      />
       <div className="flex items-center justify-between">
         <Link
           href="/lar-interior/sessoes"
@@ -97,6 +112,18 @@ export default async function SessaoPage({ params }: { params: Promise<{ order: 
               <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs opacity-55">
                 <SunIcon size={14} /> amanhã o sol nasce pro próximo passo: {proxima.tema}
               </p>
+            )}
+            {desafioCompleto && (
+              <Link
+                href="/lar-interior/celebracao"
+                className="glass-card glass-card-strong mt-3 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-bold"
+                style={{ color: "var(--accent)" }}
+              >
+                <SparkleIcon size={16} /> Jornada completa — veja seu marco
+              </Link>
+            )}
+            {reflexaoOn && (
+              <SessionReflection initialBody={reflexao?.body ?? ""} action={guardarComOrder} />
             )}
           </>
         ) : (

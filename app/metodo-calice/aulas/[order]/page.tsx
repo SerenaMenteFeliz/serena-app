@@ -6,6 +6,7 @@ import { marcarAulaConcluida } from "@/lib/actions/calice";
 import { tituloAula } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
+import { Track } from "@/components/analytics/Track";
 import { ChevronLeftIcon, CheckIcon } from "@/components/calice/icons";
 
 export default async function AulaPage({ params }: { params: Promise<{ order: string }> }) {
@@ -27,6 +28,11 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
 
   return (
     <CaliceShell nav={false}>
+      <Track
+        event="calice_lesson_started"
+        contactId={contactId}
+        props={{ order: orderNum, ja_concluida: jaConcluida }}
+      />
       <div className="flex items-center justify-between">
         <Link href="/metodo-calice/aulas" aria-label="Voltar pras aulas" className="-ml-1 p-1 opacity-70 transition-opacity hover:opacity-100">
           <ChevronLeftIcon />

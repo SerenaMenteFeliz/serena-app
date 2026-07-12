@@ -8,6 +8,7 @@ import { tituloCapitulo } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { BookReader } from "@/components/BookReader";
 import { ChapterNote } from "@/components/calice/ChapterNote";
+import { Track } from "@/components/analytics/Track";
 import { ChevronLeftIcon } from "@/components/calice/icons";
 
 export default async function CapituloPage({ params }: { params: Promise<{ order: string }> }) {
@@ -35,6 +36,7 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
 
   return (
     <CaliceShell nav={false}>
+      <Track event="calice_chapter_opened" contactId={contactId} props={{ order: orderNum }} />
       <div className="flex items-center justify-between">
         <Link href="/metodo-calice/livro" aria-label="Voltar pro livro" className="-ml-1 p-1 opacity-70 transition-opacity hover:opacity-100">
           <ChevronLeftIcon />
