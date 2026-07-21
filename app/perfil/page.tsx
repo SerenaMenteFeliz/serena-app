@@ -15,11 +15,11 @@ export default async function PerfilPage() {
   const supabase = await createClient();
   const { data: contact } = await supabase
     .from("contacts")
-    .select("nome, created_at")
+    .select("name, created_at")
     .eq("id", contactId)
     .maybeSingle();
 
-  const primeiroNome = contact?.nome?.trim().split(/\s+/)[0] ?? null;
+  const primeiroNome = contact?.name?.trim().split(/\s+/)[0] ?? null;
   const desde = contact?.created_at
     ? new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo" }).format(new Date(contact.created_at))
     : null;
