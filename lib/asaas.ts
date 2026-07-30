@@ -14,79 +14,55 @@ function authHeaders() {
   };
 }
 
-export async function findOrCreateCustomer(params: {
-  name: string;
-  email: string;
-  cpfCnpj: string;
-  externalReference: string;
-}): Promise<string> {
-  const cpf = params.cpfCnpj.replace(/\D/g, "");
-
-  const search = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cpf}`, {
+// QR Code estático não pede CPF/CNPJ nem cadastro de cliente — quem paga só
+// precisa de uma chave Pix (addressKey) pra receber. Reaproveita a primeira
+// chave ativa da conta; se não existir nenhuma, cria uma aleatória (EVP) na
+// hora. Isso torna o checkout plugável sem nenhuma configuração manual do
+// Yan além da API key.
+export async function getActiveAddressKey(): Promise<string> {
+  const list = await fetch(`${ASAAS_API_URL}/pix/addressKeys?status=ACTIVE`, {
     headers: authHeaders(),
   });
-  const searchData = await search.json();
-  const existingId = searchData?.data?.[0]?.id;
-  if (existingId) return existingId as string;
+  const listData = await list.json();
+  const existingKey = listData?.data?.[0]?.key;
+  if (existingKey) return existingKey as string;
 
-  const created = await fetch(`${ASAAS_API_URL}/customers`, {
+  const created = await fetch(`${ASAAS_API_URL}/pix/addressKeys`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({
-      name: params.name,
-      email: params.email,
-      cpfCnpj: cpf,
-      externalReference: params.externalReference,
-    }),
+    body: JSON.stringify({ type: "EVP" }),
   });
   const createdData = await created.json();
-  if (!created.ok || !createdData.id) {
-    throw new Error(`Asaas: falha ao criar cliente — ${JSON.stringify(createdData)}`);
+  if (!created.ok || !createdData.key) {
+    throw new Error(`Asaas: falha ao criar chave Pix — ${JSON.stringify(createdData)}`);
   }
-  return createdData.id as string;
+  return createdData.key as string;
 }
 
-export async function createPixPayment(params: {
-  customerId: string;
+export async function createStaticPixCharge(params: {
   value: number;
   description: string;
   externalReference: string;
-}): Promise<{ paymentId: string }> {
-  // Pix gerado na hora — vencimento de 1 dia é só formalidade da cobrança,
-  // não trava o pagamento (Pix compensa na hora, o vencimento é prazo limite).
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 1);
+  expirationSeconds?: number;
+}): Promise<{ id: string; encodedImage: string; payload: string }> {
+  const addressKey = await getActiveAddressKey();
 
-  const res = await fetch(`${ASAAS_API_URL}/payments`, {
+  const res = await fetch(`${ASAAS_API_URL}/pix/qrCodes/static`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({
-      customer: params.customerId,
-      billingType: "PIX",
+      addressKey,
       value: params.value,
-      dueDate: dueDate.toISOString().slice(0, 10),
       description: params.description,
       externalReference: params.externalReference,
+      expirationSeconds: params.expirationSeconds ?? 3600,
+      allowsMultiplePayments: false,
+      format: "ALL",
     }),
   });
   const data = await res.json();
   if (!res.ok || !data.id) {
-    throw new Error(`Asaas: falha ao criar cobrança — ${JSON.stringify(data)}`);
+    throw new Error(`Asaas: falha ao criar QR code Pix — ${JSON.stringify(data)}`);
   }
-  return { paymentId: data.id as string };
-}
-
-export async function getPixQrCode(paymentId: string): Promise<{
-  encodedImage: string;
-  payload: string;
-  expirationDate: string;
-}> {
-  const res = await fetch(`${ASAAS_API_URL}/payments/${paymentId}/pixQrCode`, {
-    headers: authHeaders(),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(`Asaas: falha ao obter QR code — ${JSON.stringify(data)}`);
-  }
-  return data;
+  return { id: data.id, encodedImage: data.encodedImage, payload: data.payload };
 }

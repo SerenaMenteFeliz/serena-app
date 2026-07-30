@@ -5,7 +5,7 @@ import type { ProductSlug } from "@/lib/access";
 
 type CheckoutResult = {
   contactId: string;
-  paymentId: string;
+  chargeId: string;
   qrCodeImage: string;
   copyPaste: string;
 };
@@ -20,7 +20,6 @@ export function CheckoutForm({ product, entryHref }: { product: ProductSlug; ent
   const [step, setStep] = useState<"form" | "gerando" | "pix" | "confirmado" | "erro">("form");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [cpf, setCpf] = useState("");
   const [result, setResult] = useState<CheckoutResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -33,7 +32,7 @@ export function CheckoutForm({ product, entryHref }: { product: ProductSlug; ent
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product, name, email, cpfCnpj: cpf }),
+      body: JSON.stringify({ product, name, email }),
     });
     const data = await res.json();
 
@@ -119,14 +118,6 @@ export function CheckoutForm({ product, entryHref }: { product: ProductSlug; ent
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="rounded-lg px-3 py-2 outline-none placeholder:opacity-50"
-        style={inputStyle}
-      />
-      <input
-        required
-        placeholder="CPF (só números)"
-        value={cpf}
-        onChange={(e) => setCpf(e.target.value)}
         className="rounded-lg px-3 py-2 outline-none placeholder:opacity-50"
         style={inputStyle}
       />

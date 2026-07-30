@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ProductSlug } from "@/lib/access";
 
 // Eventos que liberam acesso. PAYMENT_RECEIVED cobre casos em que o dinheiro
 // já caiu mas o Asaas ainda não "confirmou" formalmente — mais seguro pegar
@@ -17,26 +16,40 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const event: string | undefined = body?.event;
-  const externalReference: string | undefined = body?.payment?.externalReference;
+  // Checkout usa QR Code Pix estático (sem cliente/CPF cadastrado) — o
+  // Asaas cria a cobrança sozinho quando alguém paga, e o único jeito
+  // confiável de saber qual QR foi pago é este campo (ver lib/asaas.ts e
+  // migration 0009_pix_charges.sql).
+  const pixQrCodeId: string | undefined = body?.payment?.pixQrCodeId;
 
-  if (!event || !GRANTING_EVENTS.has(event) || !externalReference) {
+  if (!event || !GRANTING_EVENTS.has(event) || !pixQrCodeId) {
     // Outros eventos (PAYMENT_CREATED, PAYMENT_OVERDUE, PAYMENT_DELETED...)
-    // não fazem nada aqui — respondemos 200 pra não gerar retry do Asaas.
-    return NextResponse.json({ ok: true });
-  }
-
-  const [contactId, product] = externalReference.split(":") as [string, ProductSlug];
-  if (!contactId || !product) {
-    console.error("webhook Asaas: externalReference sem o formato esperado", externalReference);
+    // ou cobranças fora do fluxo do QR estático não fazem nada aqui —
+    // respondemos 200 pra não gerar retry do Asaas.
     return NextResponse.json({ ok: true });
   }
 
   const admin = createAdminClient();
+
+  const { data: charge, error: chargeError } = await admin
+    .from("pix_charges")
+    .select("contact_id, product")
+    .eq("id", pixQrCodeId)
+    .maybeSingle();
+
+  if (chargeError || !charge) {
+    console.error("webhook Asaas: pixQrCodeId sem cobrança registrada", pixQrCodeId, chargeError);
+    return NextResponse.json({ ok: true });
+  }
+
   // upsert é o que torna isso idempotente — reenvio do mesmo evento (comum
   // no Asaas) não duplica nem quebra, só regrava o mesmo estado "active".
   const { error } = await admin
     .from("product_access")
-    .upsert({ contact_id: contactId, product, status: "active" }, { onConflict: "contact_id,product" });
+    .upsert(
+      { contact_id: charge.contact_id, product: charge.product, status: "active" },
+      { onConflict: "contact_id,product" }
+    );
 
   if (error) {
     console.error("webhook Asaas: falha ao liberar acesso", error);
