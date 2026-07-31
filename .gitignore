@@ -42,3 +42,5 @@ next-env.d.ts
 
 # saída dos scripts de verificação visual
 screenshots-*/
+
+.vercel
