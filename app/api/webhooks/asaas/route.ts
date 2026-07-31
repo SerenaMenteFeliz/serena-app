@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServer } from "@/lib/analytics/server";
 
 // Eventos que liberam acesso. PAYMENT_RECEIVED cobre casos em que o dinheiro
 // já caiu mas o Asaas ainda não "confirmou" formalmente — mais seguro pegar
@@ -42,6 +43,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  // Confere se já estava ativo ANTES do upsert — o Asaas reenvia o mesmo
+  // evento com frequência, e sem essa checagem cada reenvio contaria como
+  // uma nova venda na PostHog (upsert é idempotente pro Supabase, mas não
+  // pro capture() se disparasse toda vez).
+  const { data: existing } = await admin
+    .from("product_access")
+    .select("status")
+    .eq("contact_id", charge.contact_id)
+    .eq("product", charge.product)
+    .maybeSingle();
+  const wasAlreadyActive = existing?.status === "active";
+
   // upsert é o que torna isso idempotente — reenvio do mesmo evento (comum
   // no Asaas) não duplica nem quebra, só regrava o mesmo estado "active".
   const { error } = await admin
@@ -54,6 +67,13 @@ export async function POST(request: Request) {
   if (error) {
     console.error("webhook Asaas: falha ao liberar acesso", error);
     return NextResponse.json({ error: "falha ao liberar acesso" }, { status: 500 });
+  }
+
+  if (!wasAlreadyActive) {
+    // Ground truth de conversão — fecha o funil (quiz → lead → purchase) no
+    // mesmo distinct_id (contactId) usado em todo o resto do app. Só na
+    // primeira vez que este produto vira "active" pra este contact.
+    await captureServer(charge.contact_id, "purchase", { product: charge.product });
   }
 
   return NextResponse.json({ ok: true });
