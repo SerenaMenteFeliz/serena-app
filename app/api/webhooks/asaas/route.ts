@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServer } from "@/lib/analytics/server";
+import { enviarConfirmacaoCompra } from "@/lib/email/confirmacao-compra";
 
 // Eventos que liberam acesso. PAYMENT_RECEIVED cobre casos em que o dinheiro
 // já caiu mas o Asaas ainda não "confirmou" formalmente — mais seguro pegar
@@ -74,6 +75,22 @@ export async function POST(request: Request) {
     // mesmo distinct_id (contactId) usado em todo o resto do app. Só na
     // primeira vez que este produto vira "active" pra este contact.
     await captureServer(charge.contact_id, "purchase", { product: charge.product });
+
+    // Confirmação de compra por e-mail — antes de 01/08 esse passo não
+    // existia, quem pagava não recebia nenhum aviso (achado real, revisão
+    // do Yan). Só Método Cálice por enquanto (decisão do Yan, 01/08); Lar
+    // Interior fica pra uma sessão futura. Best-effort: nunca bloqueia a
+    // resposta do webhook nem desfaz o acesso já liberado.
+    if (charge.product === "metodo_calice") {
+      const { data: contact } = await admin
+        .from("contacts")
+        .select("email, name")
+        .eq("id", charge.contact_id)
+        .maybeSingle();
+      if (contact?.email) {
+        await enviarConfirmacaoCompra({ email: contact.email, name: contact.name });
+      }
+    }
   }
 
   return NextResponse.json({ ok: true });
