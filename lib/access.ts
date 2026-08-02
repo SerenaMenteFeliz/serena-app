@@ -138,3 +138,12 @@ export async function requireProductAccess(product: ProductSlug) {
 
   return { user, contactId };
 }
+
+// Como requireProductAccess, mas não redireciona quem não comprou — usado
+// pelas telas que mostram uma prévia (sumário + 1º capítulo/dia grátis) em
+// vez de simplesmente barrar o acesso.
+export async function getProductAccessState(product: ProductSlug) {
+  const { user, contactId } = await requireAuth();
+  const products = await getActiveProducts(contactId);
+  return { user, contactId, owned: products.includes(product) };
+}

@@ -67,6 +67,10 @@ export default async function HubPage() {
     href: string;
     theme: string;
     liberado: boolean;
+    /* só o Cálice tem prévia hoje (sumário + 1º capítulo/dia grátis) — o
+       card dele fica clicável mesmo bloqueado; Lar Interior segue como
+       cadeado sem link até ganhar a mesma prévia */
+    temPreview: boolean;
     info: string | null;
     objeto: React.ReactNode;
     glow: string;
@@ -78,6 +82,7 @@ export default async function HubPage() {
       href: "/lar-interior",
       theme: "theme-lar-interior",
       liberado: temLar,
+      temPreview: false,
       info: larInfo,
       glow: "rgba(236,194,124,0.3)",
       objeto: (
@@ -93,6 +98,7 @@ export default async function HubPage() {
       href: "/metodo-calice",
       theme: "theme-metodo-calice",
       liberado: temCalice,
+      temPreview: true,
       info: caliceInfo,
       glow: "rgba(217,168,84,0.22)",
       objeto: (
@@ -190,13 +196,15 @@ export default async function HubPage() {
                     <span className="glass-orb h-[44px] w-[44px]" style={{ borderColor: "var(--glass-border)" }}>
                       <LockIcon size={18} className="opacity-60" />
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-60">em breve pra você</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-60">
+                      {p.temPreview ? "ver prévia grátis" : "em breve pra você"}
+                    </span>
                   </div>
                 )}
               </div>
             );
 
-            return p.liberado ? (
+            return p.liberado || p.temPreview ? (
               <Link
                 key={p.slug}
                 href={p.href}

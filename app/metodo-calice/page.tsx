@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireProductAccess, getContactFirstName } from "@/lib/access";
+import { getProductAccessState, getContactFirstName } from "@/lib/access";
 import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
 import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
@@ -7,10 +7,23 @@ import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
 import { Track } from "@/components/analytics/Track";
-import { BookIcon, PlayIcon, PenIcon, UserIcon, ChevronRightIcon, CheckIcon, SparkleIcon } from "@/components/calice/icons";
+import { PRODUCT_PRICE, formatPrice } from "@/lib/pricing";
+import {
+  BookIcon,
+  PlayIcon,
+  PenIcon,
+  UserIcon,
+  ChevronRightIcon,
+  CheckIcon,
+  SparkleIcon,
+  LockIcon,
+} from "@/components/calice/icons";
 
 export default async function MetodoCalicePage() {
-  const { contactId } = await requireProductAccess("metodo_calice");
+  const { contactId, owned } = await getProductAccessState("metodo_calice");
+
+  if (!owned) return <PreviewCalice contactId={contactId} />;
+
   const [chapters, progress, lessons, constancia, firstName, notasOn] = await Promise.all([
     getChapters("metodo_calice"),
     getBookProgress(contactId, "metodo_calice"),
@@ -165,6 +178,120 @@ export default async function MetodoCalicePage() {
           Pensamento do dia
         </p>
         <p className="mt-1.5 font-display text-base italic leading-snug">“{getDailyQuote()}”</p>
+      </div>
+    </CaliceShell>
+  );
+}
+
+// Quem ainda não comprou vê o sumário do livro e a lista dos 10 dias, com o
+// 1º capítulo e o 1º dia liberados de verdade pra leitura — decisão de
+// 01/08/2026 (ver "Método Cálice - Plano de Funil Completo" no vault). O
+// resto aparece com cadeado, sem link. CTA fixo leva pro checkout.
+async function PreviewCalice({ contactId }: { contactId: string }) {
+  const [chapters, lessons, firstName] = await Promise.all([
+    getChapters("metodo_calice"),
+    getLessonsWithProgress(contactId, "metodo_calice"),
+    getContactFirstName(contactId),
+  ]);
+  const { value } = PRODUCT_PRICE.metodo_calice;
+  const primeiroCapitulo = chapters[0]?.order_index;
+
+  return (
+    <CaliceShell nav={false}>
+      <Track event="calice_preview_viewed" contactId={contactId} />
+      <header>
+        <p className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
+          {getGreeting()}
+        </p>
+        <p className="font-display text-[26px] leading-tight">{firstName ?? "que bom te ver"}</p>
+      </header>
+
+      <div className="veil-arch glass-card relative mt-5 h-[200px] overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 50% 85%, rgba(217,168,84,0.22), transparent 60%)" }}
+        />
+        <div
+          className="absolute left-1/2 top-4 h-[130px] w-[130px] -translate-x-1/2 rounded-full"
+          style={{ border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)" }}
+        />
+        <div className="float-slow absolute left-1/2 top-[54%] -translate-x-1/2 -translate-y-1/2">
+          <CaliceBook width={90} height={128} />
+        </div>
+      </div>
+      <p className="mt-3 text-center font-veil-sans text-sm leading-relaxed opacity-70">
+        O Livro (13 capítulos) + os 10 Dias de Prática Guiada. Comece grátis pelo primeiro capítulo e o primeiro dia.
+      </p>
+
+      <p className="mt-6 font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">O Livro</p>
+      <ol className="mt-2 flex flex-col gap-2">
+        {chapters.map((c) => {
+          const gratis = c.order_index === primeiroCapitulo;
+          return (
+            <li key={c.order_index}>
+              {gratis ? (
+                <Link
+                  href={`/metodo-calice/livro/${c.order_index}`}
+                  className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5"
+                >
+                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">{c.title}</span>
+                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>
+                    ler grátis
+                  </span>
+                </Link>
+              ) : (
+                <div className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
+                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
+                    {c.title}
+                  </span>
+                  <LockIcon className="shrink-0 opacity-35" />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="mt-6 font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">Os 10 Dias de Prática</p>
+      <ol className="mt-2 flex flex-col gap-2">
+        {lessons.map((l) => {
+          // regra sequencial já existente (lib/calice.ts): só o 1º dia nunca
+          // fica locked, mesmo sem nenhum progresso salvo — é o que abre a
+          // prévia sozinho, sem precisar de lógica nova aqui
+          const gratis = !l.locked;
+          return (
+            <li key={l.id}>
+              {gratis ? (
+                <Link
+                  href={`/metodo-calice/aulas/${l.order_index}`}
+                  className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5"
+                >
+                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">{l.title}</span>
+                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>
+                    fazer grátis
+                  </span>
+                </Link>
+              ) : (
+                <div className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
+                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
+                    {l.title}
+                  </span>
+                  <LockIcon className="shrink-0 opacity-35" />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="sticky bottom-4 mt-6">
+        <Link
+          href="/comprar/metodo-calice"
+          className="glass-card glass-card-strong flex items-center justify-center gap-2 px-4 py-4 font-veil-sans text-sm font-bold"
+          style={{ color: "var(--accent)" }}
+        >
+          <SparkleIcon size={16} /> Desbloquear tudo — {formatPrice(value)}
+        </Link>
       </div>
     </CaliceShell>
   );

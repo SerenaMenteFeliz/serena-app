@@ -1,19 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { requireProductAccess } from "@/lib/access";
+import { getProductAccessState } from "@/lib/access";
 import { getLessonByOrder, getLessonsWithProgress } from "@/lib/calice";
 import { marcarAulaConcluida } from "@/lib/actions/calice";
 import { tituloAula } from "@/lib/calice-format";
+import { PRODUCT_PRICE, formatPrice } from "@/lib/pricing";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
 import { Track } from "@/components/analytics/Track";
-import { ChevronLeftIcon, CheckIcon } from "@/components/calice/icons";
+import { ChevronLeftIcon, CheckIcon, SparkleIcon } from "@/components/calice/icons";
 
 export default async function AulaPage({ params }: { params: Promise<{ order: string }> }) {
   const { order } = await params;
   const orderNum = Number(order);
 
-  const { contactId } = await requireProductAccess("metodo_calice");
+  const { contactId, owned } = await getProductAccessState("metodo_calice");
   const lesson = await getLessonByOrder("metodo_calice", orderNum);
   if (!lesson) notFound();
 
@@ -21,8 +22,13 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
   const progress = lessonsProgress.find((l) => l.id === lesson.id);
   if (progress?.locked) redirect("/metodo-calice/aulas");
 
+  // Sem compra, só o 1º dia é acessível — cinto de segurança contra acesso
+  // direto por URL (a prévia em /metodo-calice já só linka esse).
+  if (!owned && orderNum !== lessonsProgress[0]?.order_index) redirect("/comprar/metodo-calice");
+
   const jaConcluida = progress?.completed ?? false;
   const proxima = lessonsProgress.find((l) => l.order_index === orderNum + 1);
+  const { value } = PRODUCT_PRICE.metodo_calice;
 
   const marcarConcluidaComArgs = marcarAulaConcluida.bind(null, lesson.id, orderNum);
 
@@ -31,10 +37,14 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
       <Track
         event="calice_lesson_started"
         contactId={contactId}
-        props={{ order: orderNum, ja_concluida: jaConcluida }}
+        props={{ order: orderNum, ja_concluida: jaConcluida, owned }}
       />
       <div className="flex items-center justify-between">
-        <Link href="/metodo-calice/aulas" aria-label="Voltar pras aulas" className="-ml-1 p-1 opacity-70 transition-opacity hover:opacity-100">
+        <Link
+          href={owned ? "/metodo-calice/aulas" : "/metodo-calice"}
+          aria-label="Voltar"
+          className="-ml-1 p-1 opacity-70 transition-opacity hover:opacity-100"
+        >
           <ChevronLeftIcon />
         </Link>
         <span className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.08em] opacity-55">
@@ -53,7 +63,15 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
       </div>
 
       <div className="mt-6">
-        {jaConcluida ? (
+        {!owned ? (
+          <Link
+            href="/comprar/metodo-calice"
+            className="flex items-center justify-center gap-2 rounded-[20px] py-3.5 font-veil-sans text-sm font-bold"
+            style={{ background: "color-mix(in srgb, var(--gold) 15%, transparent)", color: "var(--accent)" }}
+          >
+            <SparkleIcon size={16} /> Desbloquear tudo — {formatPrice(value)}
+          </Link>
+        ) : jaConcluida ? (
           <>
             <div
               className="flex items-center justify-center gap-2 rounded-[20px] py-3.5 font-veil-sans text-sm font-bold"
