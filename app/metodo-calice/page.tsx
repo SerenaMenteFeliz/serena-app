@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getProductAccessState, getContactFirstName } from "@/lib/access";
 import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
 import { notesFeatureEnabled } from "@/lib/calice-notes";
@@ -32,6 +33,14 @@ export default async function MetodoCalicePage() {
     getContactFirstName(contactId),
     notesFeatureEnabled(),
   ]);
+
+  const lessonsDone = lessons.filter((l) => l.completed).length;
+  // Nunca abriu um capítulo nem concluiu um dia: primeira entrada pós-compra,
+  // manda pras boas-vindas antes da home de verdade.
+  if (progress.last_chapter_order === 0 && lessonsDone === 0) {
+    redirect("/metodo-calice/comecar");
+  }
+
   const frase = fraseConstancia(constancia);
 
   // Pra onde o toque no livro leva: próximo capítulo não lido, ou a lista
@@ -57,7 +66,6 @@ export default async function MetodoCalicePage() {
       : "toque para começar o livro";
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
-  const lessonsDone = lessons.filter((l) => l.completed).length;
 
   const categorias = [
     { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
