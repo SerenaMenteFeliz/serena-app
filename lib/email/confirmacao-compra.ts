@@ -12,8 +12,15 @@ import "server-only";
 //
 // Best-effort: falha aqui nunca pode derrubar o webhook (o acesso já foi
 // liberado antes disso rodar) — só loga e segue.
+//
+// `actionLink` (06/08): desde que o link mágico saiu, a conta é criada na
+// hora da compra (ver lib/auth/link-senha.ts) e este e-mail é quem entrega
+// o link de "criar sua senha" — sem `actionLink`, cai no aviso genérico
+// pra usar o "esqueci minha senha" na tela de login.
 
-const SENDER = { name: "Método Cálice", email: "serenamentefelizoficial@gmail.com" };
+// Domínio autenticado na Brevo (DKIM+DMARC, 06/08) — sender próprio do
+// Cálice, trocado do Gmail pessoal que bloqueava a ativação da API transacional.
+const SENDER = { name: "Geovana Zuppa", email: "metodocalice@serenamentefeliz.com" };
 const ENTRAR_URL = "https://serena-app-lac.vercel.app/metodo-calice/entrar";
 
 function firstName(name: string | null | undefined) {
@@ -22,15 +29,15 @@ function firstName(name: string | null | undefined) {
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 }
 
-function html(nome: string | null) {
+function html(nome: string | null, actionLink: string | null) {
   return `
     <div style="font-family:Georgia,'Times New Roman',serif;max-width:520px;margin:0 auto;padding:24px;color:#2b1e42;line-height:1.6;font-size:15px;">
       <p>Oi${nome ? ", " + nome : ""}.</p>
       <p><strong>Seu pagamento foi confirmado</strong> e o Método Cálice já está liberado no seu acesso.</p>
-      <p>Pra entrar, é só usar este e-mail na tela de login (mandamos um link, sem senha pra decorar):</p>
+      <p>${actionLink ? "Falta só um passo: criar sua senha de acesso." : `Pra entrar, é só usar este e-mail em ${ENTRAR_URL} — se ainda não tem senha, use "esqueci minha senha" na tela de login.`}</p>
       <p style="text-align:center;margin:28px 0;">
-        <a href="${ENTRAR_URL}" style="background:#2b1e42;color:#f7efe3;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold;display:inline-block;">
-          Entrar no Método Cálice
+        <a href="${actionLink ?? ENTRAR_URL}" style="background:#2b1e42;color:#f7efe3;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold;display:inline-block;">
+          ${actionLink ? "Criar minha senha e entrar" : "Entrar no Método Cálice"}
         </a>
       </p>
       <p>Por dentro do app você encontra:</p>
@@ -42,7 +49,15 @@ function html(nome: string | null) {
   `;
 }
 
-export async function enviarConfirmacaoCompra({ email, name }: { email: string; name: string | null }) {
+export async function enviarConfirmacaoCompra({
+  email,
+  name,
+  actionLink,
+}: {
+  email: string;
+  name: string | null;
+  actionLink?: string | null;
+}) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) {
     console.warn("enviarConfirmacaoCompra: BREVO_API_KEY ausente — pulando (acesso já liberado)");
@@ -57,7 +72,7 @@ export async function enviarConfirmacaoCompra({ email, name }: { email: string; 
         sender: SENDER,
         to: [{ email, name: nome || undefined }],
         subject: nome ? `${nome}, seu Método Cálice está liberado` : "Seu Método Cálice está liberado",
-        htmlContent: html(nome),
+        htmlContent: html(nome, actionLink ?? null),
       }),
     });
     if (!resp.ok) {

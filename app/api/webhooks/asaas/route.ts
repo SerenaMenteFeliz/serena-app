@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServer } from "@/lib/analytics/server";
 import { enviarConfirmacaoCompra } from "@/lib/email/confirmacao-compra";
+import { gerarLinkDeSenha } from "@/lib/auth/link-senha";
 
 // Eventos que liberam acesso. PAYMENT_RECEIVED cobre casos em que o dinheiro
 // já caiu mas o Asaas ainda não "confirmou" formalmente — mais seguro pegar
@@ -88,7 +89,12 @@ export async function POST(request: Request) {
         .eq("id", charge.contact_id)
         .maybeSingle();
       if (contact?.email) {
-        await enviarConfirmacaoCompra({ email: contact.email, name: contact.name });
+        // Cria a conta (ou reaproveita, se já existir) e manda o link de
+        // criar senha junto com a confirmação — sem link mágico, é assim
+        // que a pessoa entra pela primeira vez. Best-effort: nunca bloqueia
+        // a resposta do webhook nem desfaz o acesso já liberado.
+        const actionLink = await gerarLinkDeSenha({ email: contact.email, criarSeNaoExistir: true });
+        await enviarConfirmacaoCompra({ email: contact.email, name: contact.name, actionLink });
       }
     }
   }

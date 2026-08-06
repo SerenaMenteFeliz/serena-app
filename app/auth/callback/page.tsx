@@ -22,5 +22,7 @@ export default async function AuthCallbackPage({
 
   // Sem `code` na query — pode ser um link no formato implícito
   // (`#access_token=...`), que o servidor nunca vê. Delega pro client.
-  return <HashSessionFallback />;
+  // Links gerados pela Admin API (webhook de compra, recuperar senha) caem
+  // aqui — por isso o `next` precisa seguir junto.
+  return <HashSessionFallback next={destino} />;
 }

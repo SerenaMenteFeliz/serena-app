@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "senha" | "otp" | "recuperar";
+type Mode = "senha" | "recuperar";
 type Status = "idle" | "loading" | "enviado" | "erro";
 
 export function LoginForm({ produto }: { produto?: string }) {
@@ -32,8 +32,8 @@ export function LoginForm({ produto }: { produto?: string }) {
     if (error) {
       // Supabase não distingue "senha errada" de "e-mail não existe" na
       // mensagem — não vazar qual dos dois é, e cobrir o caso mais comum
-      // (quem nunca definiu senha, só entrou por link até agora).
-      setErro("E-mail ou senha incorretos. Ainda não tem uma senha? Use o link por e-mail abaixo.");
+      // (quem comprou mas ainda não criou a senha, ou esqueceu).
+      setErro("E-mail ou senha incorretos. Ainda não tem senha? Use \"esqueci minha senha\" abaixo.");
       setStatus("erro");
       return;
     }
@@ -41,36 +41,19 @@ export function LoginForm({ produto }: { produto?: string }) {
     router.push("/pos-login");
   }
 
-  async function handleOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus("loading");
-    setErro(null);
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-
-    if (error) {
-      setErro("Não deu certo enviar o link. Tenta de novo em alguns minutos.");
-      setStatus("erro");
-      return;
-    }
-    setStatus("enviado");
-  }
-
   async function handleRecuperar(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
     setErro(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha`,
-    });
-
-    if (error) {
+    try {
+      const resp = await fetch("/api/auth/recuperar-senha", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!resp.ok) throw new Error();
+    } catch {
       setErro("Não deu certo enviar o e-mail. Tenta de novo em alguns minutos.");
       setStatus("erro");
       return;
@@ -79,14 +62,6 @@ export function LoginForm({ produto }: { produto?: string }) {
   }
 
   const titulo = produto ? `Entrar em ${produto}` : "Entrar no Serena Mente Feliz";
-
-  if (status === "enviado" && mode === "otp") {
-    return (
-      <p className="glass-card rounded-[20px] px-5 py-4 text-center">
-        Te mandamos um link de acesso para <strong>{email}</strong>. Confira seu e-mail.
-      </p>
-    );
-  }
 
   if (status === "enviado" && mode === "recuperar") {
     return (
@@ -98,7 +73,7 @@ export function LoginForm({ produto }: { produto?: string }) {
 
   return (
     <form
-      onSubmit={mode === "senha" ? handleSenha : mode === "otp" ? handleOtp : handleRecuperar}
+      onSubmit={mode === "senha" ? handleSenha : handleRecuperar}
       className="glass-card flex w-full max-w-sm flex-col gap-3 rounded-[20px] px-6 py-6"
     >
       <label htmlFor="email" className="text-sm opacity-80">
@@ -142,13 +117,7 @@ export function LoginForm({ produto }: { produto?: string }) {
         className="cursor-pointer rounded-full px-4 py-2.5 font-semibold transition-transform active:scale-[0.98] disabled:opacity-60"
         style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
       >
-        {status === "loading"
-          ? "Enviando…"
-          : mode === "senha"
-            ? "Entrar"
-            : mode === "recuperar"
-              ? "Enviar link de redefinição"
-              : "Receber link de acesso"}
+        {status === "loading" ? "Enviando…" : mode === "senha" ? "Entrar" : "Enviar link de redefinição"}
       </button>
 
       {erro && (
@@ -159,18 +128,8 @@ export function LoginForm({ produto }: { produto?: string }) {
 
       <div className="mt-1 flex flex-col items-center gap-1.5 text-center text-xs opacity-70">
         {mode === "senha" && (
-          <>
-            <button type="button" onClick={() => trocarModo("recuperar")} className="underline underline-offset-2">
-              Esqueci minha senha
-            </button>
-            <button type="button" onClick={() => trocarModo("otp")} className="underline underline-offset-2">
-              Prefiro receber um link de acesso por e-mail
-            </button>
-          </>
-        )}
-        {mode === "otp" && (
-          <button type="button" onClick={() => trocarModo("senha")} className="underline underline-offset-2">
-            Já tenho senha — entrar com senha
+          <button type="button" onClick={() => trocarModo("recuperar")} className="underline underline-offset-2">
+            Esqueci minha senha
           </button>
         )}
         {mode === "recuperar" && (
