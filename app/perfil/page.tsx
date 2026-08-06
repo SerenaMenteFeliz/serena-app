@@ -5,6 +5,7 @@ import { notesFeatureEnabled, getNotes } from "@/lib/calice-notes";
 import { getPace, getLarSessions } from "@/lib/lar";
 import { sair } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
+import { PasswordForm } from "@/components/PasswordForm";
 
 // Perfil é do guarda-chuva (tema hub), não de um produto — mas fala a mesma
 // linguagem de vidro. Um painel por produto ativo, com o progresso real dele.
@@ -144,6 +145,14 @@ export default async function PerfilPage() {
               )}
             </div>
           )}
+        </div>
+
+        <p className="mt-7 text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">Acesso</p>
+        <div className="mt-2">
+          <PasswordForm
+            title="Definir ou trocar sua senha"
+            successMessage="Senha salva — use ela no próximo login, sem precisar de link por e-mail."
+          />
         </div>
 
         <form action={sair} className="mt-7">
