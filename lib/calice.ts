@@ -12,22 +12,24 @@ export type LessonBlock = {
 
 export async function getChapters(product: "metodo_calice") {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("book_chapters")
     .select("order_index, title")
     .eq("product", product)
     .order("order_index");
+  if (error) console.error("getChapters falhou", error);
   return data ?? [];
 }
 
 export async function getChapter(product: "metodo_calice", order: number) {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("book_chapters")
     .select("order_index, title, body_md")
     .eq("product", product)
     .eq("order_index", order)
     .maybeSingle();
+  if (error) console.error("getChapter falhou", error);
   return data;
 }
 
@@ -72,30 +74,33 @@ export async function saveBookProgress(contactId: string, product: "metodo_calic
 
 export async function getLessons(product: "metodo_calice") {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("lessons")
     .select("id, order_index, title")
     .eq("product", product)
     .order("order_index");
+  if (error) console.error("getLessons falhou", error);
   return data ?? [];
 }
 
 export async function getLessonByOrder(product: "metodo_calice", order: number) {
   const supabase = await createClient();
-  const { data: lesson } = await supabase
+  const { data: lesson, error: lessonError } = await supabase
     .from("lessons")
     .select("id, order_index, title")
     .eq("product", product)
     .eq("order_index", order)
     .maybeSingle();
+  if (lessonError) console.error("getLessonByOrder falhou", lessonError);
 
   if (!lesson) return null;
 
-  const { data: blocks } = await supabase
+  const { data: blocks, error: blocksError } = await supabase
     .from("lesson_blocks")
     .select("id, order_index, block_type, content")
     .eq("lesson_id", lesson.id)
     .order("order_index");
+  if (blocksError) console.error("getLessonByOrder (blocks) falhou", blocksError);
 
   return { ...lesson, blocks: (blocks ?? []) as LessonBlock[] };
 }
