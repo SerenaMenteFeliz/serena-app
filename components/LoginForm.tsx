@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "senha" | "recuperar";
+type Mode = "senha" | "recuperar" | "cadastro";
 type Status = "idle" | "loading" | "enviado" | "erro";
 
 export function LoginForm({ produto }: { produto?: string }) {
@@ -41,6 +41,42 @@ export function LoginForm({ produto }: { produto?: string }) {
     router.push("/pos-login");
   }
 
+  // Cadastro direto (sem passar por compra) — cobre quem chegou pelo quiz/
+  // material e quer ver a prévia antes de comprar. `ensureContactLink`
+  // (lib/access.ts) cria o `contact` sozinho no primeiro `requireAuth()`,
+  // então não precisa de nenhum passo extra aqui além do signUp.
+  // Se "Confirm email" estiver ligado no Supabase Auth, `data.session` vem
+  // nulo e a pessoa precisa confirmar por e-mail antes de logar — mesmo
+  // mailer com rate limit que já mordeu o link mágico, então o ideal é essa
+  // opção estar desligada (Authentication → Sign In / Providers) enquanto
+  // não tiver SMTP próprio configurado.
+  async function handleCadastro(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErro(null);
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      setErro(
+        error.message.includes("already registered") || error.message.includes("already been registered")
+          ? "Já existe conta com esse e-mail. Tenta entrar, ou \"esqueci minha senha\" se não lembrar."
+          : "Não deu certo criar a conta. Confere o e-mail e tenta de novo."
+      );
+      setStatus("erro");
+      return;
+    }
+
+    if (data.session) {
+      router.push("/pos-login");
+      return;
+    }
+
+    // Confirm email ligado no Supabase Auth — sem sessão até confirmar.
+    setStatus("enviado");
+  }
+
   async function handleRecuperar(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
@@ -62,6 +98,7 @@ export function LoginForm({ produto }: { produto?: string }) {
   }
 
   const titulo = produto ? `Entrar em ${produto}` : "Entrar no Serena Mente Feliz";
+  const tituloModo = mode === "recuperar" ? "Redefinir senha" : mode === "cadastro" ? "Criar conta" : titulo;
 
   if (status === "enviado" && mode === "recuperar") {
     return (
@@ -71,13 +108,23 @@ export function LoginForm({ produto }: { produto?: string }) {
     );
   }
 
+  if (status === "enviado" && mode === "cadastro") {
+    return (
+      <p className="glass-card rounded-[20px] px-5 py-4 text-center">
+        Falta só confirmar: mandamos um link pra <strong>{email}</strong>. Confira seu e-mail pra ativar a conta.
+      </p>
+    );
+  }
+
+  const handleSubmit = mode === "senha" ? handleSenha : mode === "cadastro" ? handleCadastro : handleRecuperar;
+
   return (
     <form
-      onSubmit={mode === "senha" ? handleSenha : handleRecuperar}
+      onSubmit={handleSubmit}
       className="glass-card flex w-full max-w-sm flex-col gap-3 rounded-[20px] px-6 py-6"
     >
       <label htmlFor="email" className="text-sm opacity-80">
-        {mode === "recuperar" ? "Redefinir senha" : titulo}
+        {tituloModo}
       </label>
       <input
         id="email"
@@ -94,12 +141,13 @@ export function LoginForm({ produto }: { produto?: string }) {
         }}
       />
 
-      {mode === "senha" && (
+      {(mode === "senha" || mode === "cadastro") && (
         <input
           id="password"
           type="password"
           required
-          placeholder="sua senha"
+          minLength={mode === "cadastro" ? 6 : undefined}
+          placeholder={mode === "cadastro" ? "crie uma senha (mín. 6 caracteres)" : "sua senha"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="rounded-lg px-3 py-2 outline-none placeholder:opacity-50"
@@ -117,7 +165,13 @@ export function LoginForm({ produto }: { produto?: string }) {
         className="cursor-pointer rounded-full px-4 py-2.5 font-semibold transition-transform active:scale-[0.98] disabled:opacity-60"
         style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
       >
-        {status === "loading" ? "Enviando…" : mode === "senha" ? "Entrar" : "Enviar link de redefinição"}
+        {status === "loading"
+          ? "Enviando…"
+          : mode === "senha"
+            ? "Entrar"
+            : mode === "cadastro"
+              ? "Criar conta"
+              : "Enviar link de redefinição"}
       </button>
 
       {erro && (
@@ -128,8 +182,18 @@ export function LoginForm({ produto }: { produto?: string }) {
 
       <div className="mt-1 flex flex-col items-center gap-1.5 text-center text-xs opacity-70">
         {mode === "senha" && (
-          <button type="button" onClick={() => trocarModo("recuperar")} className="underline underline-offset-2">
-            Esqueci minha senha
+          <>
+            <button type="button" onClick={() => trocarModo("recuperar")} className="underline underline-offset-2">
+              Esqueci minha senha
+            </button>
+            <button type="button" onClick={() => trocarModo("cadastro")} className="underline underline-offset-2">
+              Ainda não tenho conta
+            </button>
+          </>
+        )}
+        {mode === "cadastro" && (
+          <button type="button" onClick={() => trocarModo("senha")} className="underline underline-offset-2">
+            Já tenho conta
           </button>
         )}
         {mode === "recuperar" && (
