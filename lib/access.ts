@@ -105,10 +105,16 @@ export async function getCompletedProducts(contactId: string): Promise<ProductSl
   return (data ?? []).map((row) => row.product as ProductSlug);
 }
 
-// 0 produtos: sem acesso (não deveria acontecer pós-compra, mas é o fallback
-// seguro). 1 produto: cai direto na seção comprada. 2+: cai no hub.
+// 0 produtos: manda pro Método Cálice, hoje o único com prévia gratuita
+// construída (metodo-calice/page.tsx mostra PreviewCalice pra quem não
+// comprou) — cobre tanto quem se cadastrou direto (sem comprar nada ainda)
+// quanto o fallback antigo de "acabou de comprar, webhook ainda processando"
+// (nesse caso a prévia mostra normal até o acesso cair). 1 produto: cai
+// direto na seção comprada. 2+: cai no hub.
+// TODO: quando o Lar Interior ganhar prévia própria, 0 produtos deixa de
+// poder assumir "é o Cálice" — vira um catálogo/hub mesmo sem compra.
 export function resolveEntryRoute(products: ProductSlug[]): string {
-  if (products.length === 0) return "/sem-acesso";
+  if (products.length === 0) return PRODUCT_ROUTES.metodo_calice;
   if (products.length === 1) return PRODUCT_ROUTES[products[0]];
   return "/hub";
 }
