@@ -13,7 +13,12 @@ export function CaliceShell({
 }) {
   return (
     <div className="theme-metodo-calice veil-bg" style={{ color: "var(--ink)" }}>
-      <main className={`mx-auto w-full max-w-md px-5 pt-6 ${nav ? "pb-32" : "pb-8"}`}>
+      {/* o respiro de baixo soma a safe area (barra de gestos do Android /
+          home indicator do iOS) — sem isso o último elemento encosta nela */}
+      <main
+        className="mx-auto w-full max-w-md px-5 pt-6"
+        style={{ paddingBottom: `calc(${nav ? "8rem" : "2rem"} + env(safe-area-inset-bottom, 0px))` }}
+      >
         {children}
       </main>
       {nav && <CaliceNav />}

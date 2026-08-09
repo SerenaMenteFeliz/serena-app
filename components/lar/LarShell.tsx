@@ -12,7 +12,11 @@ export function LarShell({
 }) {
   return (
     <div className="theme-lar-interior veil-bg" style={{ color: "var(--ink)" }}>
-      <main className={`mx-auto w-full max-w-md px-5 pt-6 ${nav ? "pb-32" : "pb-8"}`}>
+      {/* mesmo respiro de safe area do CaliceShell */}
+      <main
+        className="mx-auto w-full max-w-md px-5 pt-6"
+        style={{ paddingBottom: `calc(${nav ? "8rem" : "2rem"} + env(safe-area-inset-bottom, 0px))` }}
+      >
         {children}
       </main>
       {nav && <LarNav />}
