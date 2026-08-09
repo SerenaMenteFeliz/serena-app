@@ -20,9 +20,14 @@ export async function ensureContactLink(user: User): Promise<string | null> {
   if (!user.email) return null;
   const admin = createAdminClient();
 
+  // Nome dado no cadastro direto pelo app (LoginForm manda em options.data).
+  // Quem veio pelo quiz já tem nome no contact e nunca passa por aqui.
+  const nomeDoCadastro =
+    typeof user.user_metadata?.name === "string" ? user.user_metadata.name.trim() || null : null;
+
   const { data: existing, error: selectError } = await admin
     .from("contacts")
-    .select("id, auth_user_id")
+    .select("id, name, auth_user_id")
     .eq("email", user.email)
     .maybeSingle();
 
@@ -32,12 +37,15 @@ export async function ensureContactLink(user: User): Promise<string | null> {
   }
 
   if (existing) {
-    if (!existing.auth_user_id) {
-      const { error: updateError } = await admin
-        .from("contacts")
-        .update({ auth_user_id: user.id })
-        .eq("id", existing.id);
-      if (updateError) console.error("ensureContactLink: falha ao vincular", updateError);
+    // Só completa o que falta: nome vindo da captura do lead tem precedência
+    // sobre o do cadastro (é o que a pessoa digitou pro funil primeiro).
+    const patch: { auth_user_id?: string; name?: string } = {};
+    if (!existing.auth_user_id) patch.auth_user_id = user.id;
+    if (!existing.name && nomeDoCadastro) patch.name = nomeDoCadastro;
+
+    if (Object.keys(patch).length > 0) {
+      const { error: updateError } = await admin.from("contacts").update(patch).eq("id", existing.id);
+      if (updateError) console.error("ensureContactLink: falha ao atualizar", updateError);
     }
     return existing.id;
   }
@@ -45,7 +53,7 @@ export async function ensureContactLink(user: User): Promise<string | null> {
   // Ninguém comprou nada ainda com esse e-mail — cria o contato já vinculado.
   const { data: created, error: insertError } = await admin
     .from("contacts")
-    .insert({ email: user.email, auth_user_id: user.id })
+    .insert({ email: user.email, auth_user_id: user.id, name: nomeDoCadastro })
     .select("id")
     .single();
 

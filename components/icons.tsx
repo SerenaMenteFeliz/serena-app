@@ -139,3 +139,60 @@ export function SparkleIcon({ size = 20, className }: IconProps) {
     </svg>
   );
 }
+
+// ── Player de áudio ─────────────────────────────────────────────────────────
+// Play/pause preenchidos (não de traço): num botão redondo de fundo sólido o
+// traço fino some, e é o único lugar do app onde ícone cheio fica certo.
+
+export function PlayFilledIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M8 5.2c0-.9 1-1.5 1.8-1l9 6.8c.7.5.7 1.5 0 2l-9 6.8c-.8.5-1.8-.1-1.8-1V5.2Z" />
+    </svg>
+  );
+}
+
+export function PauseFilledIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <rect x="6.5" y="4.5" width="4" height="15" rx="1.4" />
+      <rect x="13.5" y="4.5" width="4" height="15" rx="1.4" />
+    </svg>
+  );
+}
+
+// Voltar/avançar 15s — seta circular com o número dentro, padrão que player
+// de podcast consagrou (a pessoa reconhece sem legenda).
+export function Replay15Icon({ size = 22, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M11.8 6.2V3.4L8 6.2l3.8 2.8V6.2Z" fill="currentColor" stroke="none" />
+      <path d="M11.8 6.2a7 7 0 1 0 7 7" />
+      <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none">
+        15
+      </text>
+    </svg>
+  );
+}
+
+export function Forward15Icon({ size = 22, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M12.2 6.2V3.4L16 6.2l-3.8 2.8V6.2Z" fill="currentColor" stroke="none" />
+      <path d="M12.2 6.2a7 7 0 1 1-7 7" />
+      <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none">
+        15
+      </text>
+    </svg>
+  );
+}
+
+export function HeadphonesIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2" />
+      <path d="M4.5 13.5h2a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-4.5Z" />
+      <path d="M19.5 13.5h-2a1 1 0 0 0-1 1v3.5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4.5Z" />
+    </svg>
+  );
+}

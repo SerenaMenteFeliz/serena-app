@@ -6,9 +6,30 @@ import { captureServer } from "@/lib/analytics/server";
 export type LessonBlock = {
   id: string;
   order_index: number;
-  block_type: "text" | "video" | "image";
+  block_type: "text" | "video" | "image" | "audio";
   content: Record<string, string>;
 };
+
+// Sumário completo (só título e posição) pra montar a prévia de quem ainda
+// não comprou. Precisa de service_role: desde a migration 0011 a RLS só
+// entrega ao autenticado sem compra o PRIMEIRO capítulo e o PRIMEIRO dia, o
+// que fazia a prévia prometer "13 capítulos" e listar 1 (achado 08/08/2026).
+// O corpo do capítulo e os blocos da aula continuam protegidos pela RLS — o
+// que sai daqui é o mesmo índice que já está na página de vendas.
+export async function getCaliceOutline(product: "metodo_calice") {
+  const admin = createAdminClient();
+
+  const [{ data: chapters, error: chaptersError }, { data: lessons, error: lessonsError }] =
+    await Promise.all([
+      admin.from("book_chapters").select("order_index, title").eq("product", product).order("order_index"),
+      admin.from("lessons").select("id, order_index, title").eq("product", product).order("order_index"),
+    ]);
+
+  if (chaptersError) console.error("getCaliceOutline (capítulos) falhou", chaptersError);
+  if (lessonsError) console.error("getCaliceOutline (aulas) falhou", lessonsError);
+
+  return { chapters: chapters ?? [], lessons: lessons ?? [] };
+}
 
 export async function getChapters(product: "metodo_calice") {
   const supabase = await createClient();

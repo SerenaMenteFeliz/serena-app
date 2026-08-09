@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProductAccessState, getContactFirstName } from "@/lib/access";
-import { getChapters, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
+import { getChapters, getCaliceOutline, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
 import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
 import { getConstancia, fraseConstancia } from "@/lib/constancia";
+import { getArquetipo } from "@/lib/arquetipo";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
+import { TrilhaDias, type EstadoDia } from "@/components/calice/TrilhaDias";
+import { ArquetipoCard } from "@/components/ArquetipoCard";
 import { Track } from "@/components/analytics/Track";
-import { PRODUCT_PRICE, formatPrice } from "@/lib/pricing";
 import {
   BookIcon,
   PlayIcon,
@@ -20,18 +22,23 @@ import {
   LockIcon,
 } from "@/components/calice/icons";
 
+// Sem nome (cadastro direto no app antes de 08/08/2026, quando o campo virou
+// obrigatório) o lugar do nome recebe uma saudação de verdade, com maiúscula.
+const SEM_NOME = "Que bom te ver";
+
 export default async function MetodoCalicePage() {
   const { contactId, owned } = await getProductAccessState("metodo_calice");
 
   if (!owned) return <PreviewCalice contactId={contactId} />;
 
-  const [chapters, progress, lessons, constancia, firstName, notasOn] = await Promise.all([
+  const [chapters, progress, lessons, constancia, firstName, notasOn, arquetipo] = await Promise.all([
     getChapters("metodo_calice"),
     getBookProgress(contactId, "metodo_calice"),
     getLessonsWithProgress(contactId, "metodo_calice"),
     getConstancia(contactId),
     getContactFirstName(contactId),
     notesFeatureEnabled(),
+    getArquetipo(contactId),
   ]);
 
   const lessonsDone = lessons.filter((l) => l.completed).length;
@@ -67,6 +74,11 @@ export default async function MetodoCalicePage() {
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
 
+  const trilha = lessons.map((l) => ({
+    num: l.order_index,
+    estado: (l.completed ? "concluido" : l.id === nextLesson?.id ? "atual" : "bloqueado") as EstadoDia,
+  }));
+
   const categorias = [
     { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
     { href: "/metodo-calice/aulas", label: "Aulas", border: "var(--sage)", icon: <PlayIcon /> },
@@ -87,7 +99,7 @@ export default async function MetodoCalicePage() {
           <p className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
             {getGreeting()}
           </p>
-          <p className="font-display text-[26px] leading-tight">{firstName ?? "que bom te ver"}</p>
+          <p className="font-display text-[26px] leading-tight">{firstName ?? SEM_NOME}</p>
         </div>
         <Link
           href="/perfil"
@@ -141,9 +153,23 @@ export default async function MetodoCalicePage() {
         ))}
       </div>
 
+      {/* o padrão do quiz, de volta pra dentro do produto */}
+      <ArquetipoCard arquetipo={arquetipo} />
+
       {/* prática do dia */}
       {lessons.length > 0 && (
         <div className="mt-5">
+          <div className="mb-2.5 flex items-baseline justify-between">
+            <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">
+              Os {lessons.length} dias de prática
+            </p>
+            <Link href="/metodo-calice/aulas" className="font-veil-sans text-[10px] opacity-45">
+              {lessonsDone} concluídos ›
+            </Link>
+          </div>
+          <div className="mb-3">
+            <TrilhaDias dias={trilha} />
+          </div>
           {nextLesson ? (
             <Link href={`/metodo-calice/aulas/${nextLesson.order_index}`} className="glass-card flex items-center gap-3 px-4 py-3.5">
               <div className="min-w-0 flex-1">
@@ -191,116 +217,167 @@ export default async function MetodoCalicePage() {
   );
 }
 
-// Quem ainda não comprou vê o sumário do livro e a lista dos 10 dias, com o
-// 1º capítulo e o 1º dia liberados de verdade pra leitura — decisão de
-// 01/08/2026 (ver "Método Cálice - Plano de Funil Completo" no vault). O
-// resto aparece com cadeado, sem link. CTA fixo leva pro checkout.
+// Quem ainda não comprou. O livro é o objeto central e é o que se toca pra
+// entrar (a seção "O Livro" em lista saiu: repetia em texto o que o hero já
+// é). Os 10 dias aparecem inteiros, com o 1º aberto de verdade.
+//
+// Sem botão de compra aqui de propósito (08/08/2026): a oferta vive no fim do
+// capítulo grátis e no fim do 1º dia, quando a pessoa acabou de receber
+// valor. Paywall na abertura pede dinheiro antes de entregar qualquer coisa.
+//
+// O sumário vem do `getCaliceOutline` (service_role): a RLS da 0011 só mostra
+// a quem não comprou o primeiro item de cada lista, então ler pelo client
+// autenticado fazia a tela prometer 13 capítulos e listar 1.
 async function PreviewCalice({ contactId }: { contactId: string }) {
-  const [chapters, lessons, firstName] = await Promise.all([
-    getChapters("metodo_calice"),
-    getLessonsWithProgress(contactId, "metodo_calice"),
+  const [{ chapters, lessons }, firstName, arquetipo] = await Promise.all([
+    getCaliceOutline("metodo_calice"),
     getContactFirstName(contactId),
+    getArquetipo(contactId),
   ]);
-  const { value } = PRODUCT_PRICE.metodo_calice;
-  const primeiroCapitulo = chapters[0]?.order_index;
+
+  const primeiroCapitulo = chapters[0];
+  const primeiroDia = lessons[0];
+
+  const trilha = lessons.map((l, i) => ({
+    num: l.order_index,
+    estado: (i === 0 ? "atual" : "bloqueado") as EstadoDia,
+  }));
 
   return (
     <CaliceShell nav={false}>
       <Track event="calice_preview_viewed" contactId={contactId} />
-      <header>
-        <p className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
-          {getGreeting()}
-        </p>
-        <p className="font-display text-[26px] leading-tight">{firstName ?? "que bom te ver"}</p>
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="font-veil-sans text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
+            {getGreeting()}
+          </p>
+          <p className="font-display text-[26px] leading-tight">{firstName ?? SEM_NOME}</p>
+        </div>
+        <Link
+          href="/perfil"
+          aria-label="Perfil"
+          className="glass-orb h-[42px] w-[42px]"
+          style={{ borderColor: "color-mix(in srgb, var(--gold) 50%, transparent)" }}
+        >
+          <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
+            {(firstName ?? "S").charAt(0)}
+          </span>
+        </Link>
       </header>
 
-      <div className="veil-arch glass-card relative mt-5 h-[200px] overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{ background: "radial-gradient(circle at 50% 85%, rgba(217,168,84,0.22), transparent 60%)" }}
-        />
-        <div
-          className="absolute left-1/2 top-4 h-[130px] w-[130px] -translate-x-1/2 rounded-full"
-          style={{ border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)" }}
-        />
-        <div className="float-slow absolute left-1/2 top-[54%] -translate-x-1/2 -translate-y-1/2">
-          <CaliceBook width={90} height={128} />
+      {/* hero: o livro é o botão. A pista de que dá pra tocar é a legenda de
+          ação logo abaixo (mesma linguagem da home pós-compra) mais o selo de
+          grátis e o recuo ao toque — não uma animação pulsando, que num
+          produto cujo argumento é silêncio vira ruído e a pessoa aprende a
+          ignorar. */}
+      {primeiroCapitulo && (
+        <>
+          <Link
+            href={`/metodo-calice/livro/${primeiroCapitulo.order_index}`}
+            className="veil-arch glass-card group relative mt-5 block h-[230px] overflow-hidden transition-transform duration-200 active:scale-[0.985]"
+          >
+            <div
+              className="absolute inset-0"
+              style={{ background: "radial-gradient(circle at 50% 85%, rgba(217,168,84,0.22), transparent 60%)" }}
+            />
+            <div
+              className="absolute left-1/2 top-5 h-[140px] w-[140px] -translate-x-1/2 rounded-full"
+              style={{ border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)" }}
+            />
+            <div className="float-slow absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:scale-[1.04]">
+              <CaliceBook width={96} height={136} />
+            </div>
+            {/* o selo mora na parte reta de baixo do arco: no topo ele é
+                cortado pelo raio de 130px do `veil-arch` */}
+            <span
+              className="absolute bottom-3.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 font-veil-sans text-[10px] font-bold uppercase tracking-[0.08em]"
+              style={{ background: "color-mix(in srgb, var(--gold) 22%, white)", color: "var(--accent)" }}
+            >
+              {primeiroCapitulo.title} · grátis
+            </span>
+          </Link>
+          <p className="mt-3 text-center font-veil-sans text-xs opacity-60">
+            toque no livro para começar a ler
+          </p>
+          <p className="mt-1 text-center font-veil-sans text-[11px] opacity-40">
+            {chapters.length} capítulos no total
+          </p>
+        </>
+      )}
+
+      {/* o padrão do quiz, ou o convite pra descobrir */}
+      <ArquetipoCard arquetipo={arquetipo} />
+
+      {/* os 10 dias, todos visíveis: título legível em quem está bloqueado
+          (borrar o nome do dia mataria o desejo — ninguém quer o que não
+          consegue ler), só o toque é que não existe */}
+      {lessons.length > 0 && (
+        <div className="mt-6">
+          <div className="mb-2.5 flex items-baseline justify-between">
+            <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">
+              Os {lessons.length} dias de prática
+            </p>
+            <span className="font-veil-sans text-[10px] opacity-45">1 liberado</span>
+          </div>
+          <TrilhaDias dias={trilha} />
+
+          <ol className="mt-3 flex flex-col gap-2">
+            {lessons.map((l, i) => (
+              <li key={l.id}>
+                {i === 0 ? (
+                  <Link
+                    href={`/metodo-calice/aulas/${l.order_index}`}
+                    className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5 transition-transform active:scale-[0.99]"
+                  >
+                    <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">
+                      {l.title}
+                    </span>
+                    <span
+                      className="shrink-0 font-veil-sans text-[10.5px] font-bold"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      fazer grátis
+                    </span>
+                    <ChevronRightIcon size={16} className="shrink-0 opacity-45" />
+                  </Link>
+                ) : (
+                  <div
+                    className="glass-card flex items-center gap-3 px-4 py-3.5"
+                    style={{ background: "rgba(255,255,255,0.4)" }}
+                  >
+                    <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-60">
+                      {l.title}
+                    </span>
+                    <LockIcon className="shrink-0 opacity-45" />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
-      </div>
-      <p className="mt-3 text-center font-veil-sans text-sm leading-relaxed opacity-70">
-        O Livro (13 capítulos) + os 10 Dias de Prática Guiada. Comece grátis pelo primeiro capítulo e o primeiro dia.
-      </p>
+      )}
 
-      <p className="mt-6 font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">O Livro</p>
-      <ol className="mt-2 flex flex-col gap-2">
-        {chapters.map((c) => {
-          const gratis = c.order_index === primeiroCapitulo;
-          return (
-            <li key={c.order_index}>
-              {gratis ? (
-                <Link
-                  href={`/metodo-calice/livro/${c.order_index}`}
-                  className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5"
-                >
-                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">{c.title}</span>
-                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>
-                    ler grátis
-                  </span>
-                </Link>
-              ) : (
-                <div className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
-                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
-                    {c.title}
-                  </span>
-                  <LockIcon className="shrink-0 opacity-35" />
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      <p className="mt-6 font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">Os 10 Dias de Prática</p>
-      <ol className="mt-2 flex flex-col gap-2">
-        {lessons.map((l) => {
-          // regra sequencial já existente (lib/calice.ts): só o 1º dia nunca
-          // fica locked, mesmo sem nenhum progresso salvo — é o que abre a
-          // prévia sozinho, sem precisar de lógica nova aqui
-          const gratis = !l.locked;
-          return (
-            <li key={l.id}>
-              {gratis ? (
-                <Link
-                  href={`/metodo-calice/aulas/${l.order_index}`}
-                  className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5"
-                >
-                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">{l.title}</span>
-                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>
-                    fazer grátis
-                  </span>
-                </Link>
-              ) : (
-                <div className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
-                  <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
-                    {l.title}
-                  </span>
-                  <LockIcon className="shrink-0 opacity-35" />
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      <div className="sticky bottom-4 mt-6">
-        <Link
-          href="/comprar/metodo-calice"
-          className="glass-card glass-card-strong flex items-center justify-center gap-2 px-4 py-4 font-veil-sans text-sm font-bold"
-          style={{ color: "var(--accent)" }}
+      {/* pensamento do dia: motivo de abrir o app amanhã mesmo sem ter
+          comprado, e o mesmo card que a home pós-compra já tem */}
+      <div className="surface-card-dark relative mt-6 overflow-hidden px-[18px] py-4">
+        <div
+          className="absolute -right-2.5 -top-2.5 h-[60px] w-[60px] rounded-full opacity-50"
+          style={{ background: "radial-gradient(circle, var(--gold), transparent 70%)" }}
+        />
+        <p
+          className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em]"
+          style={{ color: "var(--gold-soft)" }}
         >
-          <SparkleIcon size={16} /> Desbloquear tudo — {formatPrice(value)}
-        </Link>
+          Pensamento do dia
+        </p>
+        <p className="mt-1.5 font-display text-base italic leading-snug">“{getDailyQuote()}”</p>
       </div>
+
+      {primeiroDia && (
+        <p className="mt-5 text-center font-veil-sans text-[11px] leading-relaxed opacity-45">
+          O primeiro capítulo e o {primeiroDia.title.split(" — ")[0]} são seus, sem pagar nada.
+        </p>
+      )}
     </CaliceShell>
   );
 }

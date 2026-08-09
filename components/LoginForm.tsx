@@ -10,6 +10,7 @@ type Status = "idle" | "loading" | "enviado" | "erro";
 export function LoginForm({ produto }: { produto?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("senha");
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -44,7 +45,9 @@ export function LoginForm({ produto }: { produto?: string }) {
   // Cadastro direto (sem passar por compra) — cobre quem chegou pelo quiz/
   // material e quer ver a prévia antes de comprar. `ensureContactLink`
   // (lib/access.ts) cria o `contact` sozinho no primeiro `requireAuth()`,
-  // então não precisa de nenhum passo extra aqui além do signUp.
+  // e desde 08/08/2026 leva junto o nome que vai em `options.data` aqui: sem
+  // ele o app tratava a pessoa por uma saudação genérica pra sempre (quem
+  // vem pelo quiz já tem nome, era só este caminho que nascia sem).
   // Se "Confirm email" estiver ligado no Supabase Auth, `data.session` vem
   // nulo e a pessoa precisa confirmar por e-mail antes de logar — mesmo
   // mailer com rate limit que já mordeu o link mágico, então o ideal é essa
@@ -56,7 +59,11 @@ export function LoginForm({ produto }: { produto?: string }) {
     setErro(null);
 
     const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name: nome.trim() } },
+    });
 
     if (error) {
       setErro(
@@ -123,9 +130,28 @@ export function LoginForm({ produto }: { produto?: string }) {
       onSubmit={handleSubmit}
       className="glass-card flex w-full max-w-sm flex-col gap-3 rounded-[20px] px-6 py-6"
     >
-      <label htmlFor="email" className="text-sm opacity-80">
+      <label htmlFor={mode === "cadastro" ? "nome" : "email"} className="text-sm opacity-80">
         {tituloModo}
       </label>
+
+      {mode === "cadastro" && (
+        <input
+          id="nome"
+          type="text"
+          required
+          autoComplete="given-name"
+          placeholder="seu primeiro nome"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          className="rounded-lg px-3 py-2 outline-none placeholder:opacity-50"
+          style={{
+            border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)",
+            background: "color-mix(in srgb, var(--accent) 6%, white)",
+            color: "var(--ink)",
+          }}
+        />
+      )}
+
       <input
         id="email"
         type="email"

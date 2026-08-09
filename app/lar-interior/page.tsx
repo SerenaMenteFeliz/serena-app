@@ -65,7 +65,8 @@ export default async function LarInteriorPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] opacity-55">
             {getGreetingLar()}
           </p>
-          <p className="font-display text-[26px] leading-tight">{firstName ?? "que bom te ver"}</p>
+          {/* mesmo fallback do Cálice: sem nome, uma saudação de verdade */}
+          <p className="font-display text-[26px] leading-tight">{firstName ?? "Que bom te ver"}</p>
         </div>
         <Link
           href="/perfil"
