@@ -14,11 +14,15 @@ export type BookNote = {
   updated_at: string;
 };
 
-// A migration 0006 (book_notes) precisa da senha do banco — passo manual do
-// Yan. Até lá o recurso fica oculto: esta checagem decide se os pontos de
-// entrada (orb na home, painel no leitor, página de notas) aparecem. Só o
+// A migration 0006 (book_notes) é passo manual no SQL Editor do Supabase.
+// Até ser aplicada o recurso fica oculto: esta checagem decide se os pontos
+// de entrada (orb na home, painel no leitor, página de notas) aparecem. Só o
 // "sim" é cacheado por processo; o "não" revalida a cada chamada, pra ligar
-// sozinho assim que a migration for aplicada.
+// sozinho assim que a migration for aplicada, sem redeploy.
+//
+// Estado em 08/08/2026: `book_notes` confirmada existindo no banco, então
+// esta checagem passa e o recurso está ligado — mas só aparece pra quem tem
+// `product_access` ativo, e hoje ninguém tem.
 let notesAvailable = false;
 
 export async function notesFeatureEnabled(): Promise<boolean> {
