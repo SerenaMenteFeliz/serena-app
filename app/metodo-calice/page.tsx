@@ -257,7 +257,13 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
   }));
 
   return (
-    <CaliceShell nav={false}>
+    // Nav ligada na prévia desde 15/08/2026 (antes era `nav={false}`). Pedido
+    // do Yan: barra inferior é o que faz parecer app em vez de página, e a
+    // prévia é exatamente onde a pessoa decide se isso é um produto sério.
+    // Só pôde ser ligada agora porque /livro e /aulas deixaram de expulsar
+    // quem não comprou — com elas barrando, duas das quatro abas seriam
+    // armadilha.
+    <CaliceShell>
       <Track event="calice_preview_viewed" contactId={contactId} />
       <header className="flex items-center justify-between">
         <div>
