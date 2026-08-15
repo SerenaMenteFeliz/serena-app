@@ -9,7 +9,6 @@ import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { getArquetipo } from "@/lib/arquetipo";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
-import { GradeDias, type EstadoDia } from "@/components/calice/GradeDias";
 import { IconeDia } from "@/components/calice/icons-dias";
 import { ArquetipoCard } from "@/components/ArquetipoCard";
 import { Track } from "@/components/analytics/Track";
@@ -75,12 +74,6 @@ export default async function MetodoCalicePage() {
       : "toque para começar o livro";
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
-
-  const grade = lessons.map((l) => ({
-    order: l.order_index,
-    nome: tituloAula(l.title),
-    estado: (l.completed ? "concluido" : l.id === nextLesson?.id ? "atual" : "bloqueado") as EstadoDia,
-  }));
 
   const categorias = [
     { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
@@ -165,11 +158,8 @@ export default async function MetodoCalicePage() {
               Os {lessons.length} dias de prática
             </p>
             <Link href="/metodo-calice/aulas" className="font-veil-sans text-[10px] opacity-45">
-              {lessonsDone} concluídos ›
+              {lessonsDone} de {lessons.length} · ver todos ›
             </Link>
-          </div>
-          <div className="mb-3">
-            <GradeDias dias={grade} />
           </div>
           {nextLesson ? (
             <Link href={`/metodo-calice/aulas/${nextLesson.order_index}`} className="glass-card flex items-center gap-3 px-4 py-3.5">
@@ -246,15 +236,6 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
 
   const primeiroCapitulo = chapters[0];
   const primeiroDia = lessons[0];
-
-  // Dia 1 sai da grade e vira card largo acima dela: é o único aberto e não
-  // deve competir por atenção com os nove trancados. Sobram 9, que fecham
-  // exatamente em 3×3.
-  const grade = lessons.slice(1).map((l) => ({
-    order: l.order_index,
-    nome: tituloAula(l.title),
-    estado: "bloqueado" as EstadoDia,
-  }));
 
   return (
     // Nav ligada na prévia desde 15/08/2026 (antes era `nav={false}`). Pedido
@@ -353,7 +334,12 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
             <ChevronRightIcon size={16} className="shrink-0 opacity-60" />
           </Link>
 
-          <GradeDias dias={grade} />
+          <Link
+            href="/metodo-calice/aulas"
+            className="mt-2 block text-center font-veil-sans text-[11.5px] opacity-50 transition-opacity hover:opacity-80"
+          >
+            ver os {lessons.length} dias ›
+          </Link>
         </div>
       )}
 
