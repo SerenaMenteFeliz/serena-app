@@ -1,13 +1,23 @@
-import Link from "next/link";
 import { requireProductAccess } from "@/lib/access";
 import { getLessonsWithProgress } from "@/lib/calice";
+import { tituloAula } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
-import { LockIcon } from "@/components/calice/icons";
+import { GradeDias, type EstadoDia } from "@/components/calice/GradeDias";
 
 export default async function AulasPage() {
   const { contactId } = await requireProductAccess("metodo_calice");
   const lessons = await getLessonsWithProgress(contactId, "metodo_calice");
   const concluidas = lessons.filter((l) => l.completed).length;
+  const atual = lessons.find((l) => !l.completed && !l.locked);
+
+  // Mesma grade da home e da prévia (15/08/2026). A lista vertical daqui
+  // divergia da vitrine em tudo — layout, ícone, tratamento do bloqueado — e
+  // era a mesma jornada vista de dois jeitos.
+  const grade = lessons.map((l) => ({
+    order: l.order_index,
+    nome: tituloAula(l.title),
+    estado: (l.completed ? "concluido" : l.id === atual?.id ? "atual" : "bloqueado") as EstadoDia,
+  }));
 
   return (
     <CaliceShell>
@@ -16,47 +26,9 @@ export default async function AulasPage() {
         {concluidas} de {lessons.length} concluídas
       </p>
 
-      <ol className="mt-4 flex flex-col gap-2.5">
-        {lessons.map((l) => {
-          const atual = !l.completed && !l.locked;
-          if (l.locked) {
-            return (
-              <li key={l.id} className="glass-card flex items-center gap-3 px-4 py-3.5" style={{ background: "rgba(255,255,255,0.4)" }}>
-                {/* título já vem "Dia N — ..." do banco, não prefixar */}
-                <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-40">
-                  {l.title}
-                </span>
-                <LockIcon className="shrink-0 opacity-35" />
-              </li>
-            );
-          }
-          return (
-            <li key={l.id}>
-              <Link
-                href={`/metodo-calice/aulas/${l.order_index}`}
-                className={`glass-card flex items-center gap-3 px-4 py-3.5 ${atual ? "glass-card-strong" : ""}`}
-              >
-                <span
-                  className={`min-w-0 flex-1 font-veil-sans text-sm leading-snug ${atual ? "font-bold" : "font-medium"}`}
-                  style={atual ? { color: "color-mix(in srgb, var(--deep-lavender) 45%, var(--ink))" } : undefined}
-                >
-                  {l.title}
-                </span>
-                {l.completed && (
-                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--accent)" }}>
-                    concluída
-                  </span>
-                )}
-                {atual && (
-                  <span className="shrink-0 font-veil-sans text-[10.5px] font-bold" style={{ color: "var(--deep-lavender)" }}>
-                    hoje
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="mt-4">
+        <GradeDias dias={grade} />
+      </div>
     </CaliceShell>
   );
 }

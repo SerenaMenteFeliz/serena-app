@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getProductAccessState } from "@/lib/access";
 import { getChapter, getChapters, saveBookProgress, evaluateCompletion } from "@/lib/calice";
 import { notesFeatureEnabled, getNote } from "@/lib/calice-notes";
 import { guardarNota } from "@/lib/actions/calice";
 import { tituloCapitulo } from "@/lib/calice-format";
 import { CaliceShell } from "@/components/calice/CaliceShell";
+import { PortaoTrancado } from "@/components/calice/PortaoTrancado";
 import { BookReader } from "@/components/BookReader";
 import { ChapterNote } from "@/components/calice/ChapterNote";
 import { Track } from "@/components/analytics/Track";
@@ -23,9 +24,18 @@ export default async function CapituloPage({ params }: { params: Promise<{ order
 
   if (!chapter) notFound();
 
-  // Sem compra, só o 1º capítulo do livro é legível — o resto é o gancho da
-  // prévia em /metodo-calice, ver "Método Cálice - Plano de Funil Completo".
-  if (!owned && orderNum !== chapters[0]?.order_index) redirect("/comprar/metodo-calice");
+  // Sem compra, só o 1º capítulo do livro é legível. Mesmo portao das aulas
+  // (15/08/2026) no lugar do `redirect()` mudo — ver o comentário lá.
+  if (!owned && orderNum !== chapters[0]?.order_index) {
+    return (
+      <PortaoTrancado
+        tipo="capitulo"
+        order={orderNum}
+        nome={tituloCapitulo(chapter.title).nome}
+        voltarHref="/metodo-calice"
+      />
+    );
+  }
 
   if (owned) {
     await saveBookProgress(contactId, "metodo_calice", orderNum);

@@ -2,13 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProductAccessState, getContactFirstName } from "@/lib/access";
 import { getChapters, getCaliceOutline, getBookProgress, getLessonsWithProgress } from "@/lib/calice";
+import { tituloAula } from "@/lib/calice-format";
 import { notesFeatureEnabled } from "@/lib/calice-notes";
 import { getGreeting, getDailyQuote } from "@/lib/calice-daily";
 import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { getArquetipo } from "@/lib/arquetipo";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
-import { TrilhaDias, type EstadoDia } from "@/components/calice/TrilhaDias";
+import { GradeDias, type EstadoDia } from "@/components/calice/GradeDias";
+import { IconeDia } from "@/components/calice/icons-dias";
 import { ArquetipoCard } from "@/components/ArquetipoCard";
 import { Track } from "@/components/analytics/Track";
 import {
@@ -19,7 +21,6 @@ import {
   ChevronRightIcon,
   CheckIcon,
   SparkleIcon,
-  LockIcon,
 } from "@/components/calice/icons";
 
 // Sem nome (cadastro direto no app antes de 08/08/2026, quando o campo virou
@@ -74,8 +75,9 @@ export default async function MetodoCalicePage() {
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
 
-  const trilha = lessons.map((l) => ({
-    num: l.order_index,
+  const grade = lessons.map((l) => ({
+    order: l.order_index,
+    nome: tituloAula(l.title),
     estado: (l.completed ? "concluido" : l.id === nextLesson?.id ? "atual" : "bloqueado") as EstadoDia,
   }));
 
@@ -114,7 +116,7 @@ export default async function MetodoCalicePage() {
       </header>
 
       {/* hero: santuário em arco com o livro flutuando */}
-      <Link href={continueHref} className="veil-arch glass-card group relative mt-5 block h-[246px] overflow-hidden">
+      <Link href={continueHref} className="veil-arch veil-sanctuary group relative mt-5 block h-[246px] overflow-hidden">
         <div
           className="absolute inset-0"
           style={{ background: "radial-gradient(circle at 50% 85%, rgba(217,168,84,0.22), transparent 60%)" }}
@@ -168,7 +170,7 @@ export default async function MetodoCalicePage() {
             </Link>
           </div>
           <div className="mb-3">
-            <TrilhaDias dias={trilha} />
+            <GradeDias dias={grade} />
           </div>
           {nextLesson ? (
             <Link href={`/metodo-calice/aulas/${nextLesson.order_index}`} className="glass-card flex items-center gap-3 px-4 py-3.5">
@@ -222,8 +224,16 @@ export default async function MetodoCalicePage() {
 // é). Os 10 dias aparecem inteiros, com o 1º aberto de verdade.
 //
 // Sem botão de compra aqui de propósito (08/08/2026): a oferta vive no fim do
-// capítulo grátis e no fim do 1º dia, quando a pessoa acabou de receber
+// capítulo aberto e no fim do 1º dia, quando a pessoa acabou de receber
 // valor. Paywall na abertura pede dinheiro antes de entregar qualquer coisa.
+//
+// **Nenhuma palavra de "grátis"/"limitado" aqui** (15/08/2026, decisão do
+// Yan): saíram o selo do livro, o "fazer grátis" do Dia 1, o "1 liberado" e
+// a contagem de capítulos. A vitrine mostra o produto inteiro como se fosse
+// todo seu; a trava só se anuncia quando a pessoa esbarra nela, no
+// `PortaoTrancado`. Por isso os dias bloqueados aqui são **link**, não
+// `<div>` — card inerte nunca barra ninguém, e aí a explicação some do
+// produto inteiro.
 //
 // O sumário vem do `getCaliceOutline` (service_role): a RLS da 0011 só mostra
 // a quem não comprou o primeiro item de cada lista, então ler pelo client
@@ -238,9 +248,13 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
   const primeiroCapitulo = chapters[0];
   const primeiroDia = lessons[0];
 
-  const trilha = lessons.map((l, i) => ({
-    num: l.order_index,
-    estado: (i === 0 ? "atual" : "bloqueado") as EstadoDia,
+  // Dia 1 sai da grade e vira card largo acima dela: é o único aberto e não
+  // deve competir por atenção com os nove trancados. Sobram 9, que fecham
+  // exatamente em 3×3.
+  const grade = lessons.slice(1).map((l) => ({
+    order: l.order_index,
+    nome: tituloAula(l.title),
+    estado: "bloqueado" as EstadoDia,
   }));
 
   return (
@@ -274,7 +288,7 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
         <>
           <Link
             href={`/metodo-calice/livro/${primeiroCapitulo.order_index}`}
-            className="veil-arch glass-card group relative mt-5 block h-[230px] overflow-hidden transition-transform duration-200 active:scale-[0.985]"
+            className="veil-arch veil-sanctuary group relative mt-5 block h-[230px] overflow-hidden transition-transform duration-200 active:scale-[0.985]"
           >
             <div
               className="absolute inset-0"
@@ -288,19 +302,19 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
               <CaliceBook width={96} height={136} />
             </div>
             {/* o selo mora na parte reta de baixo do arco: no topo ele é
-                cortado pelo raio de 130px do `veil-arch` */}
+                cortado pelo raio de 130px do `veil-arch`. Ficou só o nome do
+                capítulo — a palavra "grátis" saiu, mas o selo fica, porque
+                ele é um dos três sinais de que o livro é tocável (com a
+                legenda de ação abaixo e o recuo ao toque) */}
             <span
               className="absolute bottom-3.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 font-veil-sans text-[10px] font-bold uppercase tracking-[0.08em]"
-              style={{ background: "color-mix(in srgb, var(--gold) 22%, white)", color: "var(--accent)" }}
+              style={{ background: "color-mix(in srgb, var(--gold) 88%, white)", color: "#2b1e42" }}
             >
-              {primeiroCapitulo.title} · grátis
+              {primeiroCapitulo.title}
             </span>
           </Link>
           <p className="mt-3 text-center font-veil-sans text-xs opacity-60">
             toque no livro para começar a ler
-          </p>
-          <p className="mt-1 text-center font-veil-sans text-[11px] opacity-40">
-            {chapters.length} capítulos no total
           </p>
         </>
       )}
@@ -308,52 +322,35 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
       {/* o padrão do quiz, ou o convite pra descobrir */}
       <ArquetipoCard arquetipo={arquetipo} />
 
-      {/* os 10 dias, todos visíveis: título legível em quem está bloqueado
-          (borrar o nome do dia mataria o desejo — ninguém quer o que não
-          consegue ler), só o toque é que não existe */}
-      {lessons.length > 0 && (
+      {/* os 10 dias, todos visíveis: título legível também em quem está
+          bloqueado (borrar o nome do dia mataria o desejo — ninguém quer o
+          que não consegue ler). Sem "1 liberado": a vitrine não anuncia
+          limitação, quem toca num dia trancado é recebido pelo portao. */}
+      {lessons.length > 0 && primeiroDia && (
         <div className="mt-6">
-          <div className="mb-2.5 flex items-baseline justify-between">
-            <p className="font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">
-              Os {lessons.length} dias de prática
-            </p>
-            <span className="font-veil-sans text-[10px] opacity-45">1 liberado</span>
-          </div>
-          <TrilhaDias dias={trilha} />
+          <p className="mb-2.5 font-veil-sans text-[10px] font-bold uppercase tracking-[0.1em] opacity-45">
+            Os {lessons.length} dias de prática
+          </p>
 
-          <ol className="mt-3 flex flex-col gap-2">
-            {lessons.map((l, i) => (
-              <li key={l.id}>
-                {i === 0 ? (
-                  <Link
-                    href={`/metodo-calice/aulas/${l.order_index}`}
-                    className="glass-card glass-card-strong flex items-center gap-3 px-4 py-3.5 transition-transform active:scale-[0.99]"
-                  >
-                    <span className="min-w-0 flex-1 font-veil-sans text-sm font-bold leading-snug">
-                      {l.title}
-                    </span>
-                    <span
-                      className="shrink-0 font-veil-sans text-[10.5px] font-bold"
-                      style={{ color: "var(--accent)" }}
-                    >
-                      fazer grátis
-                    </span>
-                    <ChevronRightIcon size={16} className="shrink-0 opacity-45" />
-                  </Link>
-                ) : (
-                  <div
-                    className="glass-card flex items-center gap-3 px-4 py-3.5"
-                    style={{ background: "rgba(255,255,255,0.4)" }}
-                  >
-                    <span className="min-w-0 flex-1 font-veil-sans text-sm font-medium leading-snug opacity-60">
-                      {l.title}
-                    </span>
-                    <LockIcon className="shrink-0 opacity-45" />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
+          <Link
+            href={`/metodo-calice/aulas/${primeiroDia.order_index}`}
+            className="glass-card glass-card-strong mb-2 flex items-center gap-3 px-4 py-3.5 transition-transform active:scale-[0.99]"
+          >
+            <span style={{ color: "var(--deep-lavender)" }}>
+              <IconeDia order={primeiroDia.order_index} size={24} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-veil-sans text-[9.5px] font-bold uppercase tracking-[0.1em] opacity-60" style={{ color: "var(--accent)" }}>
+                Dia {primeiroDia.order_index}
+              </span>
+              <span className="block font-veil-sans text-sm font-bold leading-snug">
+                {tituloAula(primeiroDia.title)}
+              </span>
+            </span>
+            <ChevronRightIcon size={16} className="shrink-0 opacity-45" />
+          </Link>
+
+          <GradeDias dias={grade} />
         </div>
       )}
 
@@ -373,11 +370,6 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
         <p className="mt-1.5 font-display text-base italic leading-snug">“{getDailyQuote()}”</p>
       </div>
 
-      {primeiroDia && (
-        <p className="mt-5 text-center font-veil-sans text-[11px] leading-relaxed opacity-45">
-          O primeiro capítulo e o {primeiroDia.title.split(" — ")[0]} são seus, sem pagar nada.
-        </p>
-      )}
     </CaliceShell>
   );
 }

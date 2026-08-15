@@ -373,6 +373,19 @@ body:has(.theme-hub) { background: #e2f1ec; }
   box-shadow: 0 20px 40px -20px var(--shadow-tint);
 }
 
+/* Santuário do livro — o hero em arco no roxo profundo do quiz (15/08/2026).
+   As paletas do quiz e do app já eram idênticas hex a hex; o que faltava era
+   superfície: no quiz o roxo é a tela de resultado inteira, no app vivia num
+   card de 80px no rodapé. O hero é o maior elemento da tela e o objeto
+   central do produto, então é ele que carrega o peso — os cards da grade e o
+   convite do quiz seguem claros de propósito, pra tela não fechar. */
+.theme-metodo-calice .veil-sanctuary {
+  background: linear-gradient(168deg, #2b1e42 0%, #4a2e63 100%);
+  color: var(--surface-dark-foreground);
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+  box-shadow: 0 14px 40px rgba(28, 16, 48, 0.28);
+}
+
 /* Card de contraste no Cálice ganha o gradiente roxo do véu (nos outros
    temas continua o sólido de --surface-dark). */
 .theme-metodo-calice .surface-card-dark {

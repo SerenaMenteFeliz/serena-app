@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getProductAccessState } from "@/lib/access";
 import { getLessonByOrder, getLessonsWithProgress } from "@/lib/calice";
 import { marcarAulaConcluida } from "@/lib/actions/calice";
 import { tituloAula } from "@/lib/calice-format";
 import { PRODUCT_PRICE, formatPrice } from "@/lib/pricing";
 import { CaliceShell } from "@/components/calice/CaliceShell";
+import { PortaoTrancado } from "@/components/calice/PortaoTrancado";
 import { LessonBlockRenderer } from "@/components/LessonBlockRenderer";
 import { Track } from "@/components/analytics/Track";
 import { ChevronLeftIcon, CheckIcon, SparkleIcon } from "@/components/calice/icons";
@@ -20,11 +21,41 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
 
   const lessonsProgress = await getLessonsWithProgress(contactId, "metodo_calice");
   const progress = lessonsProgress.find((l) => l.id === lesson.id);
-  if (progress?.locked) redirect("/metodo-calice/aulas");
 
-  // Sem compra, só o 1º dia é acessível — cinto de segurança contra acesso
-  // direto por URL (a prévia em /metodo-calice já só linka esse).
-  if (!owned && orderNum !== lessonsProgress[0]?.order_index) redirect("/comprar/metodo-calice");
+  // Sem compra, só o 1º dia é acessível. Antes isso era um `redirect()` mudo
+  // pra /comprar; desde 15/08/2026 a pessoa vê o portao, que é o único lugar
+  // do produto que fala em conteúdo trancado — a vitrine não anuncia mais
+  // "grátis"/"limitado" em canto nenhum, então a explicação precisa existir
+  // aqui, com o dia que a pessoa tentou abrir ainda na tela.
+  if (!owned && orderNum !== lessonsProgress[0]?.order_index) {
+    return (
+      <PortaoTrancado
+        tipo="dia"
+        order={lesson.order_index}
+        nome={tituloAula(lesson.title)}
+        voltarHref="/metodo-calice"
+      />
+    );
+  }
+
+  // A trava sequencial vem DEPOIS do portão de compra, e não antes.
+  // Ordem invertida (até 15/08/2026) matava o portão inteiro: pra quem não
+  // comprou, o Dia 5 também está `locked` (a trava é "conclua o anterior"),
+  // então o redirect disparava primeiro e a pessoa quicava pra /aulas — que
+  // exige compra e a barrava de novo, agora sem explicação nenhuma.
+  if (progress?.locked) {
+    const atual = lessonsProgress.find((l) => !l.completed && !l.locked);
+    return (
+      <PortaoTrancado
+        tipo="dia"
+        order={lesson.order_index}
+        nome={tituloAula(lesson.title)}
+        motivo="sequencia"
+        proximoHref={atual ? `/metodo-calice/aulas/${atual.order_index}` : "/metodo-calice/aulas"}
+        voltarHref="/metodo-calice/aulas"
+      />
+    );
+  }
 
   const jaConcluida = progress?.completed ?? false;
   const proxima = lessonsProgress.find((l) => l.order_index === orderNum + 1);
@@ -69,7 +100,7 @@ export default async function AulaPage({ params }: { params: Promise<{ order: st
             className="flex items-center justify-center gap-2 rounded-[20px] py-3.5 font-veil-sans text-sm font-bold"
             style={{ background: "color-mix(in srgb, var(--gold) 15%, transparent)", color: "var(--accent)" }}
           >
-            <SparkleIcon size={16} /> Desbloquear tudo — {formatPrice(value)}
+            <SparkleIcon size={16} /> Abrir o Método Cálice — {formatPrice(value)}
           </Link>
         ) : jaConcluida ? (
           <>
