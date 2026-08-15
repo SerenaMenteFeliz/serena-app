@@ -6,6 +6,7 @@ import { getPace, getLarSessions } from "@/lib/lar";
 import { sair } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PasswordForm } from "@/components/PasswordForm";
+import { AvatarIcon } from "@/components/icons";
 
 // Perfil é do guarda-chuva (tema hub), não de um produto — mas fala a mesma
 // linguagem de vidro. Um painel por produto ativo, com o progresso real dele.
@@ -56,9 +57,7 @@ export default async function PerfilPage() {
             className="glass-orb h-[84px] w-[84px]"
             style={{ borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)" }}
           >
-            <span className="font-display text-3xl" style={{ color: "var(--accent)" }}>
-              {(primeiroNome ?? user.email ?? "S").charAt(0).toUpperCase()}
-            </span>
+            <AvatarIcon size={40} className="opacity-75" />
           </div>
           <p className="font-display text-[22px]">{primeiroNome ?? "Seu perfil"}</p>
           <div className="text-xs opacity-55">

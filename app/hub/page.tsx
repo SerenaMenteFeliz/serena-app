@@ -13,7 +13,7 @@ import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { CaliceBook } from "@/components/calice/CaliceBook";
 import { LarSun } from "@/components/lar/LarSun";
 import { Track } from "@/components/analytics/Track";
-import { LockIcon, ChevronRightIcon, SparkleIcon } from "@/components/icons";
+import { LockIcon, ChevronRightIcon, SparkleIcon, AvatarIcon } from "@/components/icons";
 
 const NOME_PRODUTO: Record<ProductSlug, string> = {
   lar_interior: "Lar Interior",
@@ -144,9 +144,7 @@ export default async function HubPage() {
             className="glass-orb h-[42px] w-[42px]"
             style={{ borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)" }}
           >
-            <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
-              {(firstName ?? "S").charAt(0)}
-            </span>
+            <AvatarIcon size={21} className="opacity-80" />
           </Link>
         </header>
 

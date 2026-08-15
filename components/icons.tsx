@@ -44,6 +44,31 @@ export function PenIcon({ size = 20, className }: IconProps) {
   );
 }
 
+// Avatar genérico do canto superior direito (15/08/2026). Substituiu a
+// inicial do nome dentro do orbe: inicial é fallback de plataforma que não
+// tem foto, e no app inteiro ninguém tem foto — então era uma letra solta
+// onde toda plataforma põe um rosto. Desenhado sem marcador de gênero
+// (sem cabelo, sem traço de ombro que sugira roupa), só cabeça e busto
+// arredondados, no peso preenchido pra ler bem a 20px dentro do orbe.
+export function AvatarIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <circle cx="12" cy="8.6" r="3.9" fill="currentColor" />
+      <path
+        d="M4.9 20.4c0-3.9 3.2-6.6 7.1-6.6s7.1 2.7 7.1 6.6c0 .5-.4.9-.9.9H5.8c-.5 0-.9-.4-.9-.9Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function UserIcon({ size = 20, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

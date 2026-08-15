@@ -21,6 +21,7 @@ import {
   ChevronRightIcon,
   CheckIcon,
   SparkleIcon,
+  AvatarIcon,
 } from "@/components/calice/icons";
 
 // Sem nome (cadastro direto no app antes de 08/08/2026, quando o campo virou
@@ -109,9 +110,7 @@ export default async function MetodoCalicePage() {
           className="glass-orb h-[42px] w-[42px]"
           style={{ borderColor: "color-mix(in srgb, var(--gold) 50%, transparent)" }}
         >
-          <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
-            {(firstName ?? "S").charAt(0)}
-          </span>
+          <AvatarIcon size={21} className="opacity-80" />
         </Link>
       </header>
 
@@ -273,9 +272,7 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
           className="glass-orb h-[42px] w-[42px]"
           style={{ borderColor: "color-mix(in srgb, var(--gold) 50%, transparent)" }}
         >
-          <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
-            {(firstName ?? "S").charAt(0)}
-          </span>
+          <AvatarIcon size={21} className="opacity-80" />
         </Link>
       </header>
 
@@ -334,20 +331,20 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
 
           <Link
             href={`/metodo-calice/aulas/${primeiroDia.order_index}`}
-            className="glass-card glass-card-strong mb-2 flex items-center gap-3 px-4 py-3.5 transition-transform active:scale-[0.99]"
+            className="veil-sanctuary mb-2 flex items-center gap-3 rounded-[20px] px-4 py-3.5 transition-transform active:scale-[0.99]"
           >
-            <span style={{ color: "var(--deep-lavender)" }}>
+            <span style={{ color: "var(--gold-soft)" }}>
               <IconeDia order={primeiroDia.order_index} size={24} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-veil-sans text-[9.5px] font-bold uppercase tracking-[0.1em] opacity-60" style={{ color: "var(--accent)" }}>
+              <span className="block font-veil-sans text-[9.5px] font-bold uppercase tracking-[0.1em] opacity-75" style={{ color: "var(--gold-soft)" }}>
                 Dia {primeiroDia.order_index}
               </span>
               <span className="block font-veil-sans text-sm font-bold leading-snug">
                 {tituloAula(primeiroDia.title)}
               </span>
             </span>
-            <ChevronRightIcon size={16} className="shrink-0 opacity-45" />
+            <ChevronRightIcon size={16} className="shrink-0 opacity-60" />
           </Link>
 
           <GradeDias dias={grade} />

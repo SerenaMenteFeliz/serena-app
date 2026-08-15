@@ -7,7 +7,7 @@ import { LarShell } from "@/components/lar/LarShell";
 import { LarSun } from "@/components/lar/LarSun";
 import { CheckinDia } from "@/components/lar/CheckinDia";
 import { Track } from "@/components/analytics/Track";
-import { LeafIcon, GiftIcon, UserIcon, ChevronRightIcon, CheckIcon, MoonIcon, SparkleIcon } from "@/components/icons";
+import { LeafIcon, GiftIcon, UserIcon, ChevronRightIcon, CheckIcon, MoonIcon, SparkleIcon, AvatarIcon } from "@/components/icons";
 
 export default async function LarInteriorPage() {
   const { contactId } = await requireProductAccess("lar_interior");
@@ -74,9 +74,7 @@ export default async function LarInteriorPage() {
           className="glass-orb h-[42px] w-[42px]"
           style={{ borderColor: "color-mix(in srgb, var(--sun) 55%, transparent)" }}
         >
-          <span className="font-display text-lg" style={{ color: "var(--accent)" }}>
-            {(firstName ?? "S").charAt(0)}
-          </span>
+          <AvatarIcon size={21} className="opacity-80" />
         </Link>
       </header>
 
