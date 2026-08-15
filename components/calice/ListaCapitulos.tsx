@@ -64,7 +64,7 @@ export function ListaCapitulos({ capitulos }: { capitulos: CapituloDaLista[] }) 
           </li>
         ) : (
           <li key={l.cap.order}>
-            <LinhaCapitulo cap={l.cap} agrupado={grupoDe(l.cap.title) != null} />
+            <LinhaCapitulo cap={l.cap} />
           </li>
         ),
       )}
@@ -72,10 +72,16 @@ export function ListaCapitulos({ capitulos }: { capitulos: CapituloDaLista[] }) 
   );
 }
 
-function LinhaCapitulo({ cap, agrupado }: { cap: CapituloDaLista; agrupado: boolean }) {
+function LinhaCapitulo({ cap }: { cap: CapituloDaLista }) {
   const { rotulo, nome } = tituloCapitulo(cap.title);
-  // dentro do grupo o rótulo perde a palavra repetida: "Capítulo 3.1" → "3.1"
-  const etiqueta = agrupado ? rotulo?.replace(/^cap[ií]tulo\s*/i, "") : rotulo;
+  // A etiqueta é SEMPRE só o número — "1", "2", "3.1", "3.10".
+  //
+  // Na primeira versão (15/08/2026) só os capítulos do grupo perdiam a
+  // palavra "Capítulo", e os de fora ficavam com "CAPÍTULO 1" em caixa alta
+  // numa coluna dimensionada pra caber "3.10": quebrava em várias linhas e
+  // desalinhava a lista inteira. A palavra não faz falta — a tela se chama
+  // "o livro" e o divisor do grupo já diz "Capítulo 3".
+  const etiqueta = rotulo?.replace(/^cap[ií]tulo\s*/i, "") ?? null;
 
   const bloqueado = cap.estado === "bloqueado";
   const atual = cap.estado === "atual";
@@ -84,16 +90,20 @@ function LinhaCapitulo({ cap, agrupado }: { cap: CapituloDaLista; agrupado: bool
   const conteudo = (
     <>
       {/* etiqueta em coluna própria e largura fixa: alinha o começo de todos
-          os nomes, que é o que faz a lista ser varrida com o olho */}
-      <span
-        className="w-[38px] shrink-0 font-veil-sans text-[10.5px] font-bold uppercase tracking-[0.06em]"
-        style={{
-          color: lido ? "var(--gold)" : atual ? "var(--deep-lavender)" : "var(--accent)",
-          opacity: bloqueado ? 0.4 : 0.85,
-        }}
-      >
-        {etiqueta ?? ""}
-      </span>
+          os nomes, que é o que faz a lista ser varrida com o olho. Item sem
+          número (a Introdução) não reserva a coluna — uma caixa vazia só
+          empurrava o nome pra dentro sem motivo */}
+      {etiqueta && (
+        <span
+          className="w-[30px] shrink-0 font-veil-sans text-[11px] font-bold tabular-nums"
+          style={{
+            color: lido ? "var(--gold)" : atual ? "var(--deep-lavender)" : "var(--accent)",
+            opacity: bloqueado ? 0.4 : 0.85,
+          }}
+        >
+          {etiqueta}
+        </span>
+      )}
 
       <span
         className={`min-w-0 flex-1 font-veil-sans text-[13.5px] leading-snug ${atual ? "font-bold" : "font-semibold"}`}

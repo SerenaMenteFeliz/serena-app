@@ -9,6 +9,7 @@ import { getConstancia, fraseConstancia } from "@/lib/constancia";
 import { getArquetipo } from "@/lib/arquetipo";
 import { CaliceShell } from "@/components/calice/CaliceShell";
 import { CaliceBook } from "@/components/calice/CaliceBook";
+import { CarrosselDias, type EstadoDia } from "@/components/calice/GradeDias";
 import { IconeDia } from "@/components/calice/icons-dias";
 import { ArquetipoCard } from "@/components/ArquetipoCard";
 import { Track } from "@/components/analytics/Track";
@@ -74,6 +75,17 @@ export default async function MetodoCalicePage() {
       : "toque para começar o livro";
 
   const nextLesson = lessons.find((l) => !l.completed && !l.locked);
+
+  // O trilho mostra a jornada MENOS o dia atual: ele já é o card largo logo
+  // acima, e repetir punha dois cards do mesmo dia empilhados — os dois em
+  // roxo, porque o atual é o único escuro. Card largo = hoje, trilho = o resto.
+  const trilho = lessons
+    .filter((l) => l.id !== nextLesson?.id)
+    .map((l) => ({
+      order: l.order_index,
+      nome: tituloAula(l.title),
+      estado: (l.completed ? "concluido" : "bloqueado") as EstadoDia,
+    }));
 
   const categorias = [
     { href: "/metodo-calice/livro", label: "Livro", border: "var(--gold)", icon: <BookIcon /> },
@@ -190,6 +202,7 @@ export default async function MetodoCalicePage() {
               )}
             </>
           )}
+          {trilho.length > 0 && <CarrosselDias dias={trilho} />}
         </div>
       )}
 
@@ -334,12 +347,14 @@ async function PreviewCalice({ contactId }: { contactId: string }) {
             <ChevronRightIcon size={16} className="shrink-0 opacity-60" />
           </Link>
 
-          <Link
-            href="/metodo-calice/aulas"
-            className="mt-2 block text-center font-veil-sans text-[11.5px] opacity-50 transition-opacity hover:opacity-80"
-          >
-            ver os {lessons.length} dias ›
-          </Link>
+          {/* trilho sem o Dia 1: ele é o card largo acima */}
+          <CarrosselDias
+            dias={lessons.slice(1).map((l) => ({
+              order: l.order_index,
+              nome: tituloAula(l.title),
+              estado: "bloqueado" as EstadoDia,
+            }))}
+          />
         </div>
       )}
 

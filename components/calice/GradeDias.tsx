@@ -51,6 +51,27 @@ export function GradeDias({ dias }: { dias: DiaDaGrade[] }) {
   );
 }
 
+// Mesmos cards em trilho horizontal, pra home (15/08/2026). Substituiu o link
+// "ver os 10 dias ›", que era texto onde cabia a jornada inteira.
+//
+// Aqui TODO card leva pra aba de aulas, inclusive o bloqueado: o trilho é uma
+// vitrine da jornada, não o índice — tocar num dia daqui é "quero ver isso",
+// não "quero abrir isso". Quem tenta abrir um dia trancado de verdade
+// continua sem conseguir, na grade da aba.
+export function CarrosselDias({ dias }: { dias: DiaDaGrade[] }) {
+  return (
+    <div className="-mx-5 mt-2 px-5">
+      <ul className="trilho-h" aria-label="Os dias da jornada">
+        {dias.map((d) => (
+          <li key={d.order} className="flex w-[96px]">
+            <CardDia dia={d} href="/metodo-calice/aulas" />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // Casca visual comum aos três estados. O card bloqueado é `<div>`, não link:
 // decisão do Yan (15/08/2026) depois de ver a grade no ar — clicar num dia
 // trancado e ser mandado pra uma tela de oferta é atrito, e a trava fica
@@ -59,7 +80,7 @@ export function GradeDias({ dias }: { dias: DiaDaGrade[] }) {
 // O `PortaoTrancado` continua existindo e não virou código morto: ele cobre
 // quem chega por URL direta (link compartilhado, histórico do navegador) e
 // quem já comprou mas tenta pular a ordem dos dias.
-function CardDia({ dia }: { dia: DiaDaGrade }) {
+function CardDia({ dia, href }: { dia: DiaDaGrade; href?: string }) {
   const { order, estado } = dia;
   const nome = NOME_CURTO[order] ?? dia.nome;
   const bloqueado = estado === "bloqueado";
@@ -128,7 +149,7 @@ function CardDia({ dia }: { dia: DiaDaGrade }) {
   const classeBase =
     "relative flex h-full w-full flex-col items-center justify-start gap-1.5 px-2 pb-2.5 pt-3.5 text-center";
 
-  if (bloqueado) {
+  if (bloqueado && !href) {
     return (
       <div
         aria-label={`Dia ${order} — ${nome} (bloqueado)`}
@@ -147,9 +168,14 @@ function CardDia({ dia }: { dia: DiaDaGrade }) {
 
   return (
     <Link
-      href={`/metodo-calice/aulas/${order}`}
-      aria-label={`Dia ${order} — ${nome}`}
+      href={href ?? `/metodo-calice/aulas/${order}`}
+      aria-label={`Dia ${order} — ${nome}${bloqueado ? " (bloqueado)" : ""}`}
       className={`${atual ? "veil-sanctuary" : "glass-card"} ${classeBase} rounded-[20px] transition-transform active:scale-[0.97]`}
+      style={
+        bloqueado
+          ? { background: "rgba(255,255,255,0.28)", borderColor: "rgba(255,255,255,0.55)", boxShadow: "none" }
+          : undefined
+      }
     >
       {conteudo}
     </Link>
