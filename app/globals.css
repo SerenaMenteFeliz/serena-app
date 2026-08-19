@@ -319,7 +319,10 @@ body:has(.theme-hub) { background: #e2f1ec; }
 }
 
 /* Trilho horizontal (carrossel dos dias na home). Rolagem por arrasto, sem
-   barra de rolagem à vista e com encaixe suave em cada card. */
+   barra de rolagem à vista e com encaixe suave em cada card. A borda direita
+   esmaece (mask-image) pra sinalizar que tem mais conteúdo fora da tela —
+   sem isso o trilho lia como uma grade fixa de 3-4 cards (achado do Yan,
+   19/08/2026, print com a última coluna cortada seca). */
 .trilho-h {
   display: flex;
   gap: 0.5rem;
@@ -327,6 +330,8 @@ body:has(.theme-hub) { background: #e2f1ec; }
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
 }
 
 .trilho-h::-webkit-scrollbar {
@@ -348,7 +353,7 @@ body:has(.theme-hub) { background: #e2f1ec; }
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0.8rem 0.6rem;
+  padding: 0.65rem 0.6rem;
   border-radius: 26px;
   /* 15/08/2026: era rgba(...,0.55) e sumia por cima do conteúdo — válido
      quando a nav só aparecia na home clara, e insustentável quando ela passou
