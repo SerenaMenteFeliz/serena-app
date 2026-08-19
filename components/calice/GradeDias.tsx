@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { IconeDia } from "./icons-dias";
 import { LockIcon, CheckIcon } from "./icons";
 
@@ -59,9 +62,31 @@ export function GradeDias({ dias }: { dias: DiaDaGrade[] }) {
 // não "quero abrir isso". Quem tenta abrir um dia trancado de verdade
 // continua sem conseguir, na grade da aba.
 export function CarrosselDias({ dias }: { dias: DiaDaGrade[] }) {
+  const trilhoRef = useRef<HTMLUListElement>(null);
+
+  // "Peek" único ao entrar na home: desliza uns 44px pra direita e volta,
+  // uma vez só, pra avisar que o trilho rola (19/08/2026 — o degradê da
+  // borda sozinho não bastou). Não repete: este produto já decidiu não usar
+  // movimento permanente como pista de interação (ver a pulsação removida em
+  // 08/08/2026, mesmo raciocínio). Respeita `prefers-reduced-motion` e só
+  // dispara se de fato houver conteúdo fora da tela pra revelar.
+  useEffect(() => {
+    const el = trilhoRef.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (el.scrollWidth <= el.clientWidth) return;
+
+    const start = window.setTimeout(() => {
+      el.scrollTo({ left: 44, behavior: "smooth" });
+      window.setTimeout(() => el.scrollTo({ left: 0, behavior: "smooth" }), 500);
+    }, 600);
+
+    return () => window.clearTimeout(start);
+  }, []);
+
   return (
     <div className="-mx-5 mt-2 px-5">
-      <ul className="trilho-h" aria-label="Os dias da jornada">
+      <ul ref={trilhoRef} className="trilho-h" aria-label="Os dias da jornada">
         {dias.map((d) => (
           <li key={d.order} className="flex w-[96px]">
             <CardDia dia={d} href="/metodo-calice/aulas" />
